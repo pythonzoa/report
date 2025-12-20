@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>분류 vs 군집화 vs 이상치 탐지 체험</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #111827;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-none { background: #374151; color: white; }
+    .btn-none:hover, .btn-none.active { background: #4b5563; }
+    .btn-classification { background: #1d4ed8; color: white; }
+    .btn-classification:hover, .btn-classification.active { background: #2563eb; }
+    .btn-clustering { background: #7c3aed; color: white; }
+    .btn-clustering:hover, .btn-clustering.active { background: #8b5cf6; }
+    .btn-outlier { background: #dc2626; color: white; }
+    .btn-outlier:hover, .btn-outlier.active { background: #ef4444; }
+    .btn-clear { background: #374151; color: white; }
+    .btn-clear:hover { background: #4b5563; }
+    
+    .canvas-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    #canvas {
+      background: #1f2937;
+      border-radius: 12px;
+      cursor: crosshair;
+      border: 1px solid #374151;
+    }
+    .explanation {
+      max-width: 500px;
+      margin: 0 auto 20px;
+      background: #1f2937;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #374151;
+    }
+    .explanation h3 {
+      color: #fbbf24;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+    .explanation p {
+      color: #d1d5db;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      font-size: 14px;
+      color: #9ca3af;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .info {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <h1>분류 vs 군집화 vs 이상치 탐지 체험</h1>
+  
+  <div class="buttons">
+    <button class="btn-none active" onclick="setMode('none')">초기화</button>
+    <button class="btn-classification" onclick="setMode('classification')">분류</button>
+    <button class="btn-clustering" onclick="setMode('clustering')">군집화</button>
+    <button class="btn-outlier" onclick="setMode('outlier')">이상치 탐지</button>
+    <button class="btn-clear" onclick="clearPoints()">모두 지우기</button>
+  </div>
+
+  <div class="canvas-container">
+    <canvas id="canvas" width="450" height="350"></canvas>
+  </div>
+
+  <div class="explanation">
+    <h3 id="exp-title">기본 상태</h3>
+    <p id="exp-desc">캔버스를 클릭하여 데이터 포인트를 추가하세요. 위의 버튼을 눌러 각 기법을 적용해 보세요.</p>
+  </div>
+
+  <div class="legend" id="legend"></div>
+  <p class="info" id="info">포인트 수: 0 | 캔버스를 클릭하여 데이터 추가</p>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let points = [
+      { x: 80, y: 80 }, { x: 100, y: 90 }, { x: 90, y: 110 }, { x: 120, y: 85 },
+      { x: 250, y: 100 }, { x: 270, y: 120 }, { x: 260, y: 90 }, { x: 280, y: 110 },
+      { x: 150, y: 280 }, { x: 170, y: 300 }, { x: 160, y: 260 }, { x: 180, y: 290 },
+      { x: 400, y: 50 }
+    ];
+    let mode = 'none';
+
+    const classColors = { A: '#3b82f6', B: '#22c55e', C: '#f59e0b' };
+    const clusterColors = ['#8b5cf6', '#ec4899', '#14b8a6'];
+
+    const explanations = {
+      none: {
+        title: '기본 상태',
+        desc: '캔버스를 클릭하여 데이터 포인트를 추가하세요. 위의 버튼을 눌러 각 기법을 적용해 보세요.'
+      },
+      classification: {
+        title: '분류 (Classification)',
+        desc: '사전에 정의된 경계(점선)에 따라 각 데이터가 A, B, C 클래스로 분류됩니다. 지도 학습으로, 새 데이터가 어떤 "알려진" 범주에 속하는지 판단합니다.'
+      },
+      clustering: {
+        title: '군집화 (Clustering)',
+        desc: '사전 정의된 경계 없이, 가까운 데이터끼리 자동으로 그룹화됩니다. 비지도 학습으로, 데이터 내 숨겨진 패턴을 발견합니다.'
+      },
+      outlier: {
+        title: '이상치 탐지 (Outlier Detection)',
+        desc: '전체 데이터의 중심에서 멀리 떨어진 비정상적인 데이터(빨간색)를 식별합니다. 대다수와 다른 소수의 데이터에 초점을 맞춥니다.'
+      }
+    };
+
+    // 분류
+    function classifyPoint(point) {
+      if (point.x < 200 && point.y < 200) return 'A';
+      if (point.x >= 200 && point.y < 200) return 'B';
+      return 'C';
+    }
+
+    // 군집화
+    function clusterPoints() {
+      if (points.length < 3) return points.map(() => 0);
+      
+      const centroids = [
+        { x: 100, y: 100 },
+        { x: 260, y: 100 },
+        { x: 160, y: 280 }
+      ];
+      
+      return points.map(point => {
+        let minDist = Infinity;
+        let cluster = 0;
+        centroids.forEach((c, i) => {
+          const dist = Math.sqrt((point.x - c.x) ** 2 + (point.y - c.y) ** 2);
+          if (dist < minDist) {
+            minDist = dist;
+            cluster = i;
+          }
+        });
+        return cluster;
+      });
+    }
+
+    // 이상치 탐지
+    function detectOutliers() {
+      if (points.length < 2) return points.map(() => false);
+      
+      const centerX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+      const centerY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+      
+      const distances = points.map(p => 
+        Math.sqrt((p.x - centerX) ** 2 + (p.y - centerY) ** 2)
+      );
+      
+      const avgDist = distances.reduce((a, b) => a + b, 0) / distances.length;
+      const threshold = avgDist * 1.5;
+      
+      return distances.map(d => d > threshold);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const clusters = clusterPoints();
+      const outliers = detectOutliers();
+
+      // 분류 모드: 경계선
+      if (mode === 'classification') {
+        ctx.setLineDash([8, 4]);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        
+        ctx.beginPath();
+        ctx.moveTo(200, 0);
+        ctx.lineTo(200, 200);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(0, 200);
+        ctx.lineTo(450, 200);
+        ctx.stroke();
+        
+        ctx.setLineDash([]);
+        
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillStyle = classColors.A;
+        ctx.fillText('클래스 A', 80, 30);
+        ctx.fillStyle = classColors.B;
+        ctx.fillText('클래스 B', 300, 30);
+        ctx.fillStyle = classColors.C;
+        ctx.fillText('클래스 C', 180, 330);
+      }
+
+      // 군집화 모드: 중심점
+      if (mode === 'clustering') {
+        const centroids = [
+          { x: 100, y: 100 },
+          { x: 260, y: 100 },
+          { x: 160, y: 280 }
+        ];
+        
+        centroids.forEach((c, i) => {
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+          ctx.fillStyle = clusterColors[i] + '80';
+          ctx.fill();
+        });
+        
+        ctx.font = '14px sans-serif';
+        ctx.fillStyle = clusterColors[0];
+        ctx.fillText('군집 1', 70, 75);
+        ctx.fillStyle = clusterColors[1];
+        ctx.fillText('군집 2', 230, 75);
+        ctx.fillStyle = clusterColors[2];
+        ctx.fillText('군집 3', 130, 320);
+      }
+
+      // 포인트 그리기
+      points.forEach((point, i) => {
+        ctx.beginPath();
+        
+        let fillColor = '#6b7280';
+        let radius = 8;
+        
+        if (mode === 'classification') {
+          fillColor = classColors[classifyPoint(point)];
+        } else if (mode === 'clustering') {
+          fillColor = clusterColors[clusters[i]];
+        } else if (mode === 'outlier') {
+          if (outliers[i]) {
+            fillColor = '#ef4444';
+            radius = 10;
+          }
+        }
+        
+        ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      // 빈 캔버스 안내
+      if (points.length === 0) {
+        ctx.font = '14px sans-serif';
+        ctx.fillStyle = '#9ca3af';
+        ctx.textAlign = 'center';
+        ctx.fillText('클릭하여 데이터 포인트 추가', 225, 175);
+        ctx.textAlign = 'left';
+      }
+
+      updateInfo();
+    }
+
+    function updateInfo() {
+      document.getElementById('exp-title').textContent = explanations[mode].title;
+      document.getElementById('exp-desc').textContent = explanations[mode].desc;
+      document.getElementById('info').textContent = `포인트 수: ${points.length} | 캔버스를 클릭하여 데이터 추가`;
+      
+      // 범례 업데이트
+      const legend = document.getElementById('legend');
+      legend.innerHTML = '';
+      
+      if (mode === 'classification') {
+        legend.innerHTML = `
+          <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span> A</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> B</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> C</span>
+        `;
+      } else if (mode === 'clustering') {
+        legend.innerHTML = `
+          <span class="legend-item"><span class="legend-dot" style="background:#8b5cf6"></span> 군집 1</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#ec4899"></span> 군집 2</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#14b8a6"></span> 군집 3</span>
+        `;
+      } else if (mode === 'outlier') {
+        legend.innerHTML = `
+          <span class="legend-item"><span class="legend-dot" style="background:#6b7280"></span> 정상</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span> 이상치</span>
+        `;
+      }
+    }
+
+    function setMode(newMode) {
+      mode = newMode;
+      document.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.btn-${newMode}`).classList.add('active');
+      draw();
+    }
+
+    function clearPoints() {
+      points = [];
+      draw();
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      points.push({ x, y });
+      draw();
+    });
+
+    // 초기 그리기
+    draw();
+  </script>
+</body>
+</html>
