@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ML 방법론의 한계 체험</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #9ca3af;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #374151;
+      color: white;
+    }
+    .tab:hover { background: #4b5563; }
+    .tab.active { background: #3b82f6; }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .demo-section {
+      display: none;
+      background: #1f2937;
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid #374151;
+    }
+    .demo-section.active { display: block; }
+    
+    .demo-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .demo-icon {
+      font-size: 2rem;
+    }
+    .demo-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #fbbf24;
+    }
+    .demo-subtitle {
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+    
+    .theory-box {
+      background: linear-gradient(135deg, #1e3a5f 0%, #1a365d 100%);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      border-left: 4px solid #3b82f6;
+    }
+    .theory-box h4 {
+      color: #60a5fa;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .theory-box p {
+      color: #d1d5db;
+      font-size: 13.5px;
+      line-height: 1.7;
+      margin-bottom: 10px;
+    }
+    .theory-box p:last-child {
+      margin-bottom: 0;
+    }
+    .theory-box ul {
+      color: #d1d5db;
+      font-size: 13px;
+      line-height: 1.8;
+      margin-left: 20px;
+    }
+    .theory-box .formula {
+      background: #0f172a;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #a5f3fc;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+    
+    .real-world-box {
+      background: linear-gradient(135deg, #3d1f1f 0%, #4a1d1d 100%);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      border-left: 4px solid #ef4444;
+    }
+    .real-world-box h4 {
+      color: #fca5a5;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .real-world-box p {
+      color: #d1d5db;
+      font-size: 13.5px;
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+    .real-world-box .example {
+      background: #1f1f1f;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      color: #fcd34d;
+      margin: 8px 0;
+    }
+    
+    .solution-box {
+      background: linear-gradient(135deg, #14532d 0%, #166534 100%);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      border-left: 4px solid #22c55e;
+    }
+    .solution-box h4 {
+      color: #86efac;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .solution-box ul {
+      color: #d1d5db;
+      font-size: 13px;
+      line-height: 1.8;
+      margin-left: 20px;
+    }
+    .solution-box li {
+      margin-bottom: 6px;
+    }
+    .solution-box .tag {
+      display: inline-block;
+      background: #065f46;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-right: 6px;
+    }
+    
+    .interactive-area {
+      background: #111827;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .interactive-area h4 {
+      color: #fbbf24;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .control-group label {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .control-group input[type="range"] {
+      width: 150px;
+    }
+    .control-group select {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #4b5563;
+      background: #374151;
+      color: white;
+      font-size: 13px;
+    }
+    button.action {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      background: #10b981;
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button.action:hover { background: #059669; }
+    
+    .canvas-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    canvas {
+      background: #0a0a0f;
+      border-radius: 8px;
+      border: 1px solid #374151;
+    }
+    
+    .result-box {
+      background: #1a1a2e;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 14px;
+    }
+    .result-box h4 {
+      color: #60a5fa;
+      margin-bottom: 10px;
+    }
+    .result-box p {
+      color: #d1d5db;
+      line-height: 1.6;
+    }
+    .metric {
+      display: inline-block;
+      background: #374151;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin: 4px 4px 4px 0;
+      font-size: 13px;
+    }
+    .metric.good { background: #065f46; }
+    .metric.bad { background: #991b1b; }
+    .metric.warn { background: #92400e; }
+    
+    .insight {
+      margin-top: 12px;
+      padding: 12px;
+      background: #1e3a5f;
+      border-left: 3px solid #3b82f6;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      color: #bfdbfe;
+      line-height: 1.6;
+    }
+    
+    .collapse-toggle {
+      background: none;
+      border: 1px solid #4b5563;
+      color: #9ca3af;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    .collapse-toggle:hover {
+      background: #374151;
+      color: white;
+    }
+    .collapsible {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .collapsible.open {
+      max-height: 2000px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔬 ML 방법론의 실제 환경 한계 체험</h1>
+  <p class="subtitle">이론과 현실의 간극을 직접 실험하고 이해하세요</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showDemo('imbalance')">클래스 불균형</button>
+    <button class="tab" onclick="showDemo('curse')">차원의 저주</button>
+    <button class="tab" onclick="showDemo('noise')">노이즈 영향</button>
+    <button class="tab" onclick="showDemo('drift')">개념 드리프트</button>
+    <button class="tab" onclick="showDemo('k-sensitivity')">K값 민감도</button>
+  </div>
+
+  <div class="container">
+    
+    <!-- ==================== 1. 클래스 불균형 ==================== -->
+    <div id="imbalance" class="demo-section active">
+      <div class="demo-header">
+        <span class="demo-icon">⚖️</span>
+        <div>
+          <div class="demo-title">클래스 불균형 (Class Imbalance)</div>
+          <div class="demo-subtitle">왜 99% 정확도가 쓸모없을 수 있는가?</div>
+        </div>
+      </div>
+
+      <div class="theory-box">
+        <h4>📚 이론적 배경</h4>
+        <p>
+          <strong>클래스 불균형</strong>은 분류 문제에서 각 클래스의 샘플 수가 크게 다른 상황을 말합니다. 
+          대부분의 분류 알고리즘은 전체 정확도를 최대화하도록 설계되어, 다수 클래스에 편향된 모델을 학습합니다.
+        </p>
+        <div class="formula">
+          정확도(Accuracy) = (TP + TN) / (TP + TN + FP + FN)
+        </div>
+        <p>
+          이 지표는 클래스 불균형 상황에서 <strong>다수 클래스만 맞춰도 높은 값</strong>을 보입니다.
+          예를 들어, 1000개 중 사기 거래가 5개뿐이라면, 모두 "정상"으로 예측해도 99.5% 정확도를 얻습니다.
+          하지만 실제 관심 대상인 사기는 하나도 탐지하지 못합니다.
+        </p>
+      </div>
+
+      <button class="collapse-toggle" onclick="toggleCollapse('imb-details')">
+        ▼ 심화 내용 펼치기
+      </button>
+      <div id="imb-details" class="collapsible">
+        <div class="real-world-box">
+          <h4>🌍 실제 사례</h4>
+          <p><strong>신용카드 사기 탐지:</strong> Kaggle의 Credit Card Fraud 데이터셋에서 사기 비율은 약 0.17% (284,807건 중 492건)</p>
+          <div class="example">
+            "모든 거래를 정상으로 예측" → 정확도 99.83%, 사기 탐지율 0%
+          </div>
+          <p><strong>의료 진단:</strong> 희귀 질환의 유병률이 0.01%인 경우, 모든 환자를 "정상"으로 진단해도 99.99% 정확도</p>
+          <p><strong>제조업 불량 탐지:</strong> Six Sigma 수준의 공정에서 불량률은 0.00034% (백만개당 3.4개)</p>
+        </div>
+
+        <div class="solution-box">
+          <h4>💡 해결 방법</h4>
+          <ul>
+            <li><span class="tag">데이터 레벨</span> <strong>오버샘플링 (SMOTE):</strong> 소수 클래스의 합성 샘플 생성 → 과적합 위험</li>
+            <li><span class="tag">데이터 레벨</span> <strong>언더샘플링:</strong> 다수 클래스 축소 → 정보 손실 위험</li>
+            <li><span class="tag">알고리즘 레벨</span> <strong>비용 민감 학습:</strong> 소수 클래스 오분류에 높은 가중치 부여</li>
+            <li><span class="tag">평가 레벨</span> <strong>적절한 지표 사용:</strong> Precision, Recall, F1-Score, AUC-PR</li>
+            <li><span class="tag">앙상블</span> <strong>Balanced Random Forest, EasyEnsemble</strong> 등 불균형 특화 알고리즘</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="interactive-area">
+        <h4>🎮 직접 실험해보기</h4>
+        <div class="controls">
+          <div class="control-group">
+            <label>소수 클래스 비율: <span id="imb-ratio-val">5%</span></label>
+            <input type="range" id="imb-ratio" min="1" max="50" value="5" oninput="updateImbalance()">
+          </div>
+          <button class="action" onclick="runImbalanceDemo()">분류 실행</button>
+        </div>
+        
+        <div class="canvas-container">
+          <canvas id="imbalance-canvas" width="450" height="280"></canvas>
+        </div>
+        
+        <div class="result-box" id="imbalance-result">
+          <h4>📊 결과</h4>
+          <p>슬라이더를 조절하고 "분류 실행"을 눌러보세요.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. 차원의 저주 ==================== -->
+    <div id="curse" class="demo-section">
+      <div class="demo-header">
+        <span class="demo-icon">📐</span>
+        <div>
+          <div class="demo-title">차원의 저주 (Curse of Dimensionality)</div>
+          <div class="demo-subtitle">왜 고차원에서 거리 기반 알고리즘이 실패하는가?</div>
+        </div>
+      </div>
+
+      <div class="theory-box">
+        <h4>📚 이론적 배경</h4>
+        <p>
+          <strong>차원의 저주</strong>는 Richard Bellman이 1961년 명명한 현상으로, 차원이 증가함에 따라 
+          데이터 분석과 조직화에 필요한 데이터 양이 기하급수적으로 증가하는 문제입니다.
+        </p>
+        <p>
+          고차원 공간에서는 직관과 다른 현상들이 발생합니다:
+        </p>
+        <ul>
+          <li><strong>거리 집중 현상:</strong> 모든 점들 사이의 거리가 비슷해짐</li>
+          <li><strong>데이터 희소성:</strong> 같은 밀도를 유지하려면 데이터가 기하급수적으로 필요</li>
+          <li><strong>초구(Hypersphere)의 부피:</strong> 고차원에서 대부분의 부피가 표면 근처에 집중</li>
+        </ul>
+        <div class="formula">
+          거리 집중: lim(d→∞) [max_dist - min_dist] / min_dist → 0
+        </div>
+        <p>
+          즉, 차원(d)이 커질수록 최대 거리와 최소 거리의 <strong>상대적 차이가 사라집니다.</strong>
+          K-NN에서 "가장 가까운 이웃"의 의미가 희석되는 이유입니다.
+        </p>
+      </div>
+
+      <button class="collapse-toggle" onclick="toggleCollapse('curse-details')">
+        ▼ 심화 내용 펼치기
+      </button>
+      <div id="curse-details" class="collapsible">
+        <div class="real-world-box">
+          <h4>🌍 실제 사례</h4>
+          <p><strong>유전체 분석:</strong> 수만~수십만 개의 유전자 발현값 (특성) vs 수백 명의 환자 (샘플)</p>
+          <div class="example">
+            20,000개 유전자, 200명 환자 → 특성이 샘플보다 100배 많은 "p >> n" 문제
+          </div>
+          <p><strong>텍스트 분류:</strong> Bag-of-Words로 표현 시 수만 차원의 희소 벡터</p>
+          <p><strong>이미지 처리:</strong> 256×256 이미지 = 65,536차원 (RGB면 196,608차원)</p>
+        </div>
+
+        <div class="solution-box">
+          <h4>💡 해결 방법</h4>
+          <ul>
+            <li><span class="tag">특성 선택</span> <strong>Filter/Wrapper/Embedded:</strong> 중요한 특성만 선택 (정보 기반, 모델 기반)</li>
+            <li><span class="tag">차원 축소</span> <strong>PCA:</strong> 분산 최대화 방향으로 선형 투영 → 비선형 구조 손실 가능</li>
+            <li><span class="tag">차원 축소</span> <strong>t-SNE, UMAP:</strong> 비선형 관계 보존 → 대규모 데이터에서 느림</li>
+            <li><span class="tag">거리 측정</span> <strong>코사인 유사도:</strong> 고차원 희소 데이터에서 유클리디안보다 효과적</li>
+            <li><span class="tag">모델 선택</span> <strong>트리 기반 모델:</strong> Random Forest, XGBoost는 차원의 저주에 상대적으로 강건</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="interactive-area">
+        <h4>🎮 직접 실험해보기</h4>
+        <div class="controls">
+          <div class="control-group">
+            <label>차원 수: <span id="dim-val">2</span></label>
+            <input type="range" id="dim-slider" min="2" max="100" value="2" oninput="updateDimension()">
+          </div>
+          <div class="control-group">
+            <label>데이터 포인트 수</label>
+            <select id="n-points">
+              <option value="50">50개</option>
+              <option value="100" selected>100개</option>
+              <option value="200">200개</option>
+            </select>
+          </div>
+          <button class="action" onclick="runCurseDemo()">실험 실행</button>
+        </div>
+        
+        <div class="canvas-container">
+          <canvas id="curse-canvas" width="450" height="280"></canvas>
+        </div>
+        
+        <div class="result-box" id="curse-result">
+          <h4>📊 결과</h4>
+          <p>차원을 높이면서 거리 비율 변화를 관찰하세요.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 3. 노이즈 영향 ==================== -->
+    <div id="noise" class="demo-section">
+      <div class="demo-header">
+        <span class="demo-icon">📡</span>
+        <div>
+          <div class="demo-title">노이즈와 이상치의 영향</div>
+          <div class="demo-subtitle">잡음이 모델을 어떻게 왜곡시키는가?</div>
+        </div>
+      </div>
+
+      <div class="theory-box">
+        <h4>📚 이론적 배경</h4>
+        <p>
+          <strong>노이즈(Noise)</strong>는 데이터 수집 과정에서 발생하는 무작위 오류이고,
+          <strong>이상치(Outlier)</strong>는 대다수 데이터와 현저히 다른 패턴을 보이는 관측치입니다.
+        </p>
+        <p>
+          K-Means와 같은 알고리즘은 모든 데이터 포인트를 동등하게 취급하여 중심점을 계산합니다:
+        </p>
+        <div class="formula">
+          centroid = (1/n) × Σᵢ xᵢ   (모든 점의 평균)
+        </div>
+        <p>
+          이 때문에 극단적인 값 하나가 전체 군집의 중심을 크게 이동시킬 수 있습니다.
+          평균(mean)이 중앙값(median)보다 이상치에 민감한 것과 같은 원리입니다.
+        </p>
+      </div>
+
+      <button class="collapse-toggle" onclick="toggleCollapse('noise-details')">
+        ▼ 심화 내용 펼치기
+      </button>
+      <div id="noise-details" class="collapsible">
+        <div class="real-world-box">
+          <h4>🌍 실제 사례</h4>
+          <p><strong>센서 데이터:</strong> IoT 센서의 일시적 오작동, 전송 오류로 인한 스파이크</p>
+          <div class="example">
+            온도 센서: [..., 23.5, 24.1, 999.0, 23.8, ...] → 999.0은 센서 오류
+          </div>
+          <p><strong>금융 데이터:</strong> 입력 실수로 인한 잘못된 거래 금액 (예: $100 대신 $10,000)</p>
+          <p><strong>의료 데이터:</strong> 측정 장비 보정 오류, 환자 정보 입력 실수</p>
+          <p><strong>설문 데이터:</strong> 불성실 응답, 의도적 허위 응답</p>
+        </div>
+
+        <div class="solution-box">
+          <h4>💡 해결 방법</h4>
+          <ul>
+            <li><span class="tag">전처리</span> <strong>이상치 탐지 후 제거:</strong> IQR, Z-score 기반 필터링 → 정보 손실 가능</li>
+            <li><span class="tag">전처리</span> <strong>윈저화(Winsorization):</strong> 극단값을 특정 백분위수로 대체</li>
+            <li><span class="tag">알고리즘</span> <strong>K-Medoids:</strong> 평균 대신 실제 데이터 포인트(medoid)를 중심으로 사용</li>
+            <li><span class="tag">알고리즘</span> <strong>DBSCAN:</strong> 밀도 기반 군집화로 노이즈를 자동으로 분리</li>
+            <li><span class="tag">알고리즘</span> <strong>Robust PCA:</strong> 이상치에 강건한 차원 축소</li>
+            <li><span class="tag">앙상블</span> <strong>부트스트랩 집계:</strong> 여러 샘플로 학습하여 노이즈 영향 분산</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="interactive-area">
+        <h4>🎮 직접 실험해보기</h4>
+        <div class="controls">
+          <div class="control-group">
+            <label>노이즈 비율: <span id="noise-val">0%</span></label>
+            <input type="range" id="noise-slider" min="0" max="30" value="0" oninput="updateNoise()">
+          </div>
+          <button class="action" onclick="runNoiseDemo()">K-Means 실행</button>
+        </div>
+        
+        <div class="canvas-container">
+          <canvas id="noise-canvas" width="450" height="280"></canvas>
+        </div>
+        
+        <div class="result-box" id="noise-result">
+          <h4>📊 결과</h4>
+          <p>노이즈를 추가하고 K-Means를 실행해보세요.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 4. 개념 드리프트 ==================== -->
+    <div id="drift" class="demo-section">
+      <div class="demo-header">
+        <span class="demo-icon">⏰</span>
+        <div>
+          <div class="demo-title">개념 드리프트 (Concept Drift)</div>
+          <div class="demo-subtitle">왜 과거의 모델이 미래에 실패하는가?</div>
+        </div>
+      </div>
+
+      <div class="theory-box">
+        <h4>📚 이론적 배경</h4>
+        <p>
+          <strong>개념 드리프트</strong>는 모델이 학습한 입력(X)과 출력(Y) 간의 관계 P(Y|X)가 
+          시간이 지남에 따라 변화하는 현상입니다.
+        </p>
+        <p>드리프트의 유형:</p>
+        <ul>
+          <li><strong>점진적 드리프트 (Gradual):</strong> 천천히 변화 (예: 소비자 취향 변화)</li>
+          <li><strong>급격한 드리프트 (Sudden):</strong> 갑작스러운 변화 (예: 정책 변경, 팬데믹)</li>
+          <li><strong>반복적 드리프트 (Recurring):</strong> 주기적 패턴 (예: 계절성)</li>
+          <li><strong>점증적 드리프트 (Incremental):</strong> 작은 변화가 누적</li>
+        </ul>
+        <div class="formula">
+          학습 시점: P_train(Y|X) ≠ 적용 시점: P_test(Y|X)
+        </div>
+        <p>
+          이로 인해 과거 데이터로 학습한 모델의 성능이 시간이 지남에 따라 저하되는 
+          <strong>"모델 부패(Model Decay)"</strong> 현상이 발생합니다.
+        </p>
+      </div>
+
+      <button class="collapse-toggle" onclick="toggleCollapse('drift-details')">
+        ▼ 심화 내용 펼치기
+      </button>
+      <div id="drift-details" class="collapsible">
+        <div class="real-world-box">
+          <h4>🌍 실제 사례</h4>
+          <p><strong>스팸 필터:</strong> 스패머들이 필터를 우회하기 위해 지속적으로 메시지 변형</p>
+          <div class="example">
+            2010년 스팸 패턴 학습 → 2024년에는 완전히 다른 스팸 수법 등장
+          </div>
+          <p><strong>주가 예측:</strong> 시장 조건, 규제, 경제 상황의 지속적 변화</p>
+          <p><strong>추천 시스템:</strong> 사용자 취향 변화, 새로운 트렌드 등장</p>
+          <p><strong>COVID-19 영향:</strong> 팬데믹으로 인해 거의 모든 예측 모델이 급격히 무력화됨</p>
+        </div>
+
+        <div class="solution-box">
+          <h4>💡 해결 방법</h4>
+          <ul>
+            <li><span class="tag">모니터링</span> <strong>성능 추적:</strong> 실시간으로 모델 성능 지표 모니터링</li>
+            <li><span class="tag">탐지</span> <strong>드리프트 탐지:</strong> DDM, ADWIN, Page-Hinkley 등 통계적 검정</li>
+            <li><span class="tag">적응</span> <strong>주기적 재학습:</strong> 새 데이터로 모델을 정기적으로 업데이트</li>
+            <li><span class="tag">적응</span> <strong>온라인 학습:</strong> 새 데이터가 들어올 때마다 점진적 학습</li>
+            <li><span class="tag">적응</span> <strong>앙상블 + 가중치:</strong> 최신 데이터에 높은 가중치 부여</li>
+            <li><span class="tag">설계</span> <strong>시간 윈도우:</strong> 최근 N일/N개월 데이터만 사용하여 학습</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="interactive-area">
+        <h4>🎮 직접 실험해보기</h4>
+        <div class="controls">
+          <div class="control-group">
+            <label>시간 경과: <span id="time-val">T=0 (학습 시점)</span></label>
+            <input type="range" id="time-slider" min="0" max="100" value="0" oninput="updateTime()">
+          </div>
+          <button class="action" onclick="runDriftDemo()">시뮬레이션</button>
+        </div>
+        
+        <div class="canvas-container">
+          <canvas id="drift-canvas" width="450" height="280"></canvas>
+        </div>
+        
+        <div class="result-box" id="drift-result">
+          <h4>📊 결과</h4>
+          <p>시간을 경과시키며 모델 성능 변화를 관찰하세요.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 5. K값 민감도 ==================== -->
+    <div id="k-sensitivity" class="demo-section">
+      <div class="demo-header">
+        <span class="demo-icon">🎛️</span>
+        <div>
+          <div class="demo-title">하이퍼파라미터 민감도</div>
+          <div class="demo-subtitle">K값 하나가 결과를 어떻게 완전히 바꾸는가?</div>
+        </div>
+      </div>
+
+      <div class="theory-box">
+        <h4>📚 이론적 배경</h4>
+        <p>
+          <strong>하이퍼파라미터</strong>는 학습 전에 사람이 설정해야 하는 값으로, 모델의 성능과 동작 방식에 
+          결정적인 영향을 미칩니다. 데이터로부터 학습되지 않기 때문에 최적값을 찾는 것이 도전입니다.
+        </p>
+        <p>K-Means의 K(군집 수)가 대표적인 예입니다:</p>
+        <ul>
+          <li><strong>K가 너무 작으면:</strong> 자연스러운 그룹들이 강제로 합쳐짐 (과소적합)</li>
+          <li><strong>K가 너무 크면:</strong> 하나의 그룹이 인위적으로 분할됨 (과적합)</li>
+          <li><strong>최적 K:</strong> 데이터의 실제 구조를 반영, but 정답이 없는 경우가 많음</li>
+        </ul>
+        <div class="formula">
+          K-Means 목적함수: J = Σᵢ Σⱼ ||xⱼ - μᵢ||²   (K가 크면 항상 J 감소)
+        </div>
+        <p>
+          K를 늘리면 목적함수는 항상 감소하므로, 이것만으로는 최적 K를 결정할 수 없습니다.
+        </p>
+      </div>
+
+      <button class="collapse-toggle" onclick="toggleCollapse('k-details')">
+        ▼ 심화 내용 펼치기
+      </button>
+      <div id="k-details" class="collapsible">
+        <div class="real-world-box">
+          <h4>🌍 실제 사례</h4>
+          <p><strong>고객 세분화:</strong> 마케팅팀은 3개 세그먼트, 영업팀은 7개 세그먼트를 원함 → "정답"이 없음</p>
+          <div class="example">
+            같은 고객 데이터로 K=3 → "고가치/중간/저가치" 또는 K=7 → 더 세분화된 페르소나
+          </div>
+          <p><strong>이미지 압축:</strong> K-Means로 색상을 K개로 줄일 때, K에 따라 품질/용량 트레이드오프</p>
+          <p><strong>문서 군집화:</strong> 뉴스 기사를 몇 개 주제로 묶을 것인가? 5개? 50개? 500개?</p>
+        </div>
+
+        <div class="solution-box">
+          <h4>💡 해결 방법</h4>
+          <ul>
+            <li><span class="tag">휴리스틱</span> <strong>Elbow Method:</strong> K에 따른 SSE 그래프에서 "팔꿈치" 점 찾기</li>
+            <li><span class="tag">통계적</span> <strong>Silhouette Score:</strong> 군집 내 응집도와 군집 간 분리도의 조화</li>
+            <li><span class="tag">통계적</span> <strong>Gap Statistic:</strong> 실제 데이터와 균일 분포 데이터 비교</li>
+            <li><span class="tag">정보 이론</span> <strong>BIC/AIC:</strong> 모델 복잡도에 패널티를 부여</li>
+            <li><span class="tag">도메인</span> <strong>비즈니스 요구사항:</strong> 실용적으로 관리 가능한 군집 수 고려</li>
+            <li><span class="tag">자동화</span> <strong>X-Means, G-Means:</strong> K를 자동으로 결정하는 알고리즘</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="interactive-area">
+        <h4>🎮 직접 실험해보기</h4>
+        <div class="controls">
+          <div class="control-group">
+            <label>K 값: <span id="k-val">3</span></label>
+            <input type="range" id="k-slider" min="2" max="8" value="3" oninput="updateK()">
+          </div>
+          <button class="action" onclick="runKDemo()">군집화 실행</button>
+        </div>
+        
+        <div class="canvas-container">
+          <canvas id="k-canvas" width="450" height="280"></canvas>
+        </div>
+        
+        <div class="result-box" id="k-result">
+          <h4>📊 결과</h4>
+          <p>K값을 변경하며 군집화 결과 변화를 관찰하세요.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Tab navigation
+    function showDemo(id) {
+      document.querySelectorAll('.demo-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // Collapse toggle
+    function toggleCollapse(id) {
+      const el = document.getElementById(id);
+      const btn = el.previousElementSibling;
+      el.classList.toggle('open');
+      btn.textContent = el.classList.contains('open') ? '▲ 심화 내용 접기' : '▼ 심화 내용 펼치기';
+    }
+
+    // Utility functions
+    function randomGaussian(mean, std) {
+      let u = 0, v = 0;
+      while (u === 0) u = Math.random();
+      while (v === 0) v = Math.random();
+      return mean + std * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    }
+
+    // 1. Class Imbalance Demo
+    function updateImbalance() {
+      document.getElementById('imb-ratio-val').textContent = document.getElementById('imb-ratio').value + '%';
+    }
+
+    function runImbalanceDemo() {
+      const canvas = document.getElementById('imbalance-canvas');
+      const ctx = canvas.getContext('2d');
+      const ratio = parseInt(document.getElementById('imb-ratio').value) / 100;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const totalPoints = 200;
+      const minorityCount = Math.max(1, Math.floor(totalPoints * ratio));
+      const majorityCount = totalPoints - minorityCount;
+      
+      const majority = [];
+      const minority = [];
+      
+      // 다수 클래스 (정상) - 왼쪽 영역
+      for (let i = 0; i < majorityCount; i++) {
+        majority.push({
+          x: randomGaussian(150, 65),
+          y: randomGaussian(140, 55),
+          label: 0
+        });
+      }
+      
+      // 소수 클래스 (사기) - 오른쪽 영역 (일부 겹침)
+      for (let i = 0; i < minorityCount; i++) {
+        minority.push({
+          x: randomGaussian(320, 50),
+          y: randomGaussian(160, 50),
+          label: 1
+        });
+      }
+      
+      // 간단한 결정 경계 (x = 240)
+      const boundary = 240;
+      
+      // 결정 경계 그리기
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 4]);
+      ctx.beginPath();
+      ctx.moveTo(boundary, 0);
+      ctx.lineTo(boundary, 280);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // 분류 결과 계산
+      let TP = 0, FP = 0, TN = 0, FN = 0;
+      
+      // 다수 클래스 그리기 및 분류
+      majority.forEach(p => {
+        const predicted = p.x > boundary ? 1 : 0; // 오른쪽이면 사기로 예측
+        if (predicted === 0) TN++; else FP++;
+        
+        ctx.beginPath();
+        ctx.arc(Math.max(5, Math.min(445, p.x)), Math.max(5, Math.min(275, p.y)), 5, 0, Math.PI * 2);
+        ctx.fillStyle = predicted === 0 ? '#60a5fa' : '#60a5fa';
+        ctx.fill();
+        // 오분류 표시
+        if (predicted === 1) {
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      });
+      
+      // 소수 클래스 그리기 및 분류
+      minority.forEach(p => {
+        const predicted = p.x > boundary ? 1 : 0;
+        if (predicted === 1) TP++; else FN++;
+        
+        ctx.beginPath();
+        ctx.arc(Math.max(5, Math.min(445, p.x)), Math.max(5, Math.min(275, p.y)), 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#f87171';
+        ctx.fill();
+        // 오분류 표시 (놓친 사기)
+        if (predicted === 0) {
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        }
+      });
+      
+      // 지표 계산
+      const accuracy = ((TP + TN) / totalPoints * 100).toFixed(1);
+      const precision = (TP + FP) > 0 ? (TP / (TP + FP) * 100).toFixed(1) : 'N/A';
+      const recall = (TP + FN) > 0 ? (TP / (TP + FN) * 100).toFixed(1) : 'N/A';
+      const f1 = (precision !== 'N/A' && recall !== 'N/A' && (parseFloat(precision) + parseFloat(recall)) > 0) 
+        ? (2 * parseFloat(precision) * parseFloat(recall) / (parseFloat(precision) + parseFloat(recall))).toFixed(1) 
+        : 'N/A';
+      
+      // 범례
+      ctx.font = '11px Arial';
+      ctx.fillStyle = '#60a5fa';
+      ctx.fillText(`● 다수 클래스 (정상): ${majorityCount}개`, 10, 18);
+      ctx.fillStyle = '#f87171';
+      ctx.fillText(`● 소수 클래스 (사기): ${minorityCount}개`, 10, 34);
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillText(`--- 결정 경계 (x=${boundary})`, 10, 50);
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillText(`검은 테두리 = 놓친 사기 (FN: ${FN})`, 280, 18);
+      ctx.fillText(`노란 테두리 = 오탐 (FP: ${FP})`, 280, 34);
+      
+      const resultDiv = document.getElementById('imbalance-result');
+      resultDiv.innerHTML = `
+        <h4>📊 분류기 성능 결과</h4>
+        <p>
+          <span class="metric">TP: ${TP}</span>
+          <span class="metric">FP: ${FP}</span>
+          <span class="metric">TN: ${TN}</span>
+          <span class="metric">FN: ${FN}</span>
+        </p>
+        <p>
+          <span class="metric ${parseFloat(accuracy) > 90 ? 'warn' : 'good'}">정확도: ${accuracy}%</span>
+          <span class="metric ${precision === 'N/A' || parseFloat(precision) < 50 ? 'bad' : parseFloat(precision) < 80 ? 'warn' : 'good'}">정밀도: ${precision}%</span>
+          <span class="metric ${recall === 'N/A' || parseFloat(recall) < 50 ? 'bad' : parseFloat(recall) < 80 ? 'warn' : 'good'}">재현율: ${recall}%</span>
+          <span class="metric ${f1 === 'N/A' || parseFloat(f1) < 50 ? 'bad' : parseFloat(f1) < 70 ? 'warn' : 'good'}">F1-Score: ${f1}%</span>
+        </p>
+        <div class="insight">
+          💡 <strong>핵심 통찰:</strong> 
+          ${ratio < 0.1 ? `<strong>극심한 불균형(${(ratio*100).toFixed(0)}%)</strong>에서 정확도 ${accuracy}%는 높아 보이지만, 실제로 중요한 재현율은 ${recall}%입니다. ` : ''}
+          ${FN > 0 ? `<strong>${FN}건의 사기를 놓쳤습니다</strong>(검은 테두리). 실제 금융에서 이는 수억 원의 손실을 의미할 수 있습니다. ` : ''}
+          ${FP > 0 ? `${FP}건의 오탐(정상을 사기로 판단)이 발생했습니다. ` : ''}
+          ${ratio >= 0.3 ? `불균형이 적을수록(${(ratio*100).toFixed(0)}%) 분류기가 소수 클래스를 더 잘 학습합니다.` : ''}
+          <br><br>
+          <strong>비즈니스 관점:</strong> 사기 탐지에서는 <strong>재현율(놓치지 않기)</strong>이 중요하고, 스팸 필터에서는 <strong>정밀도(오탐 줄이기)</strong>가 더 중요할 수 있습니다.
+        </div>
+      `;
+    }
+
+    // 2. Curse of Dimensionality Demo
+    function updateDimension() {
+      document.getElementById('dim-val').textContent = document.getElementById('dim-slider').value;
+    }
+
+    function runCurseDemo() {
+      const canvas = document.getElementById('curse-canvas');
+      const ctx = canvas.getContext('2d');
+      const dim = parseInt(document.getElementById('dim-slider').value);
+      const nPoints = parseInt(document.getElementById('n-points').value);
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const points = [];
+      for (let i = 0; i < nPoints; i++) {
+        const point = [];
+        for (let d = 0; d < dim; d++) {
+          point.push(Math.random());
+        }
+        points.push(point);
+      }
+      
+      const distances = [];
+      for (let i = 1; i < points.length; i++) {
+        let dist = 0;
+        for (let d = 0; d < dim; d++) {
+          dist += (points[0][d] - points[i][d]) ** 2;
+        }
+        distances.push(Math.sqrt(dist));
+      }
+      
+      const minDist = Math.min(...distances);
+      const maxDist = Math.max(...distances);
+      const ratio = maxDist / minDist;
+      const avgDist = distances.reduce((a, b) => a + b) / distances.length;
+      const stdDist = Math.sqrt(distances.map(d => (d - avgDist) ** 2).reduce((a, b) => a + b) / distances.length);
+      const cv = (stdDist / avgDist * 100).toFixed(1);
+      
+      const bins = 20;
+      const binWidth = (maxDist - minDist) / bins || 1;
+      const histogram = new Array(bins).fill(0);
+      distances.forEach(d => {
+        const bin = Math.min(Math.floor((d - minDist) / binWidth), bins - 1);
+        histogram[bin]++;
+      });
+      
+      const maxCount = Math.max(...histogram);
+      const barWidth = (canvas.width - 80) / bins;
+      
+      ctx.fillStyle = '#3b82f6';
+      histogram.forEach((count, i) => {
+        const barHeight = (count / maxCount) * 180;
+        ctx.fillRect(50 + i * barWidth, 230 - barHeight, barWidth - 2, barHeight);
+      });
+      
+      ctx.strokeStyle = '#6b7280';
+      ctx.beginPath();
+      ctx.moveTo(50, 230);
+      ctx.lineTo(canvas.width - 30, 230);
+      ctx.moveTo(50, 40);
+      ctx.lineTo(50, 230);
+      ctx.stroke();
+      
+      ctx.font = '11px Arial';
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillText('거리 분포', canvas.width / 2 - 20, 260);
+      ctx.fillText('빈도', 15, 140);
+      ctx.fillText(minDist.toFixed(2), 45, 248);
+      ctx.fillText(maxDist.toFixed(2), canvas.width - 60, 248);
+      
+      ctx.font = '12px Arial';
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillText(`${dim}차원 공간, ${nPoints}개 포인트`, 60, 25);
+      
+      const resultDiv = document.getElementById('curse-result');
+      const isProblematic = ratio < 2 || cv < 15;
+      resultDiv.innerHTML = `
+        <h4>📊 거리 분포 분석 결과</h4>
+        <p>
+          <span class="metric">최소 거리: ${minDist.toFixed(3)}</span>
+          <span class="metric">최대 거리: ${maxDist.toFixed(3)}</span>
+          <span class="metric ${ratio < 1.5 ? 'bad' : ratio < 2.5 ? 'warn' : 'good'}">최대/최소 비율: ${ratio.toFixed(2)}</span>
+          <span class="metric ${cv < 10 ? 'bad' : cv < 20 ? 'warn' : 'good'}">변동계수(CV): ${cv}%</span>
+        </p>
+        <div class="insight">
+          💡 <strong>핵심 통찰:</strong> 
+          ${dim <= 3 ? `저차원(${dim}D)에서는 거리 분포가 넓고 변동성이 커서 "가장 가까운 이웃"과 "가장 먼 이웃"이 명확히 구분됩니다. K-NN, K-Means가 잘 작동합니다.` : ''}
+          ${dim > 3 && dim <= 15 ? `중간 차원(${dim}D)에서 거리 집중 현상이 시작됩니다. 변동계수(${cv}%)가 낮아지면서 거리 기반 판단의 신뢰도가 떨어집니다.` : ''}
+          ${dim > 15 && dim <= 50 ? `고차원(${dim}D)에서는 모든 점이 비슷한 거리에 있습니다. 최대/최소 비율이 ${ratio.toFixed(2)}로, "가장 가까운 이웃"이라는 개념이 무의미해집니다.` : ''}
+          ${dim > 50 ? `매우 고차원(${dim}D)입니다. 거리 비율 ${ratio.toFixed(2)}는 사실상 모든 점이 동일한 거리에 있음을 의미합니다. 차원 축소(PCA, t-SNE) 없이는 거리 기반 알고리즘을 사용할 수 없습니다.` : ''}
+        </div>
+      `;
+    }
+
+    // 3. Noise Demo
+    function updateNoise() {
+      document.getElementById('noise-val').textContent = document.getElementById('noise-slider').value + '%';
+    }
+
+    function runNoiseDemo() {
+      const canvas = document.getElementById('noise-canvas');
+      const ctx = canvas.getContext('2d');
+      const noiseRatio = parseInt(document.getElementById('noise-slider').value) / 100;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const clusters = [
+        { cx: 90, cy: 80, color: '#3b82f6' },
+        { cx: 360, cy: 90, color: '#10b981' },
+        { cx: 220, cy: 210, color: '#f59e0b' }
+      ];
+      
+      const pointsPerCluster = 30;
+      const points = [];
+      
+      clusters.forEach((c, ci) => {
+        for (let i = 0; i < pointsPerCluster; i++) {
+          points.push({
+            x: randomGaussian(c.cx, 28),
+            y: randomGaussian(c.cy, 25),
+            cluster: ci,
+            isNoise: false
+          });
+        }
+      });
+      
+      const noiseCount = Math.floor(points.length * noiseRatio);
+      for (let i = 0; i < noiseCount; i++) {
+        points.push({
+          x: Math.random() * 420 + 15,
+          y: Math.random() * 250 + 15,
+          cluster: -1,
+          isNoise: true
+        });
+      }
+      
+      let centroids = clusters.map(c => ({ x: c.cx, y: c.cy }));
+      
+      for (let iter = 0; iter < 10; iter++) {
+        points.forEach(p => {
+          let minDist = Infinity;
+          centroids.forEach((c, i) => {
+            const dist = Math.sqrt((p.x - c.x) ** 2 + (p.y - c.y) ** 2);
+            if (dist < minDist) {
+              minDist = dist;
+              p.assigned = i;
+            }
+          });
+        });
+        
+        centroids = centroids.map((_, i) => {
+          const assigned = points.filter(p => p.assigned === i);
+          if (assigned.length === 0) return centroids[i];
+          return {
+            x: assigned.reduce((s, p) => s + p.x, 0) / assigned.length,
+            y: assigned.reduce((s, p) => s + p.y, 0) / assigned.length
+          };
+        });
+      }
+      
+      const colors = ['#3b82f6', '#10b981', '#f59e0b'];
+      points.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.isNoise ? 4 : 6, 0, Math.PI * 2);
+        ctx.fillStyle = p.isNoise ? '#ef4444' : colors[p.assigned];
+        ctx.fill();
+        if (p.isNoise) {
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      });
+      
+      centroids.forEach((c, i) => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 12, 0, Math.PI * 2);
+        ctx.fillStyle = colors[i];
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(c.x - 5, c.y - 5);
+        ctx.lineTo(c.x + 5, c.y + 5);
+        ctx.moveTo(c.x + 5, c.y - 5);
+        ctx.lineTo(c.x - 5, c.y + 5);
+        ctx.stroke();
+      });
+      
+      ctx.setLineDash([3, 3]);
+      clusters.forEach((c, i) => {
+        ctx.beginPath();
+        ctx.arc(c.cx, c.cy, 10, 0, Math.PI * 2);
+        ctx.strokeStyle = colors[i];
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+      
+      const shifts = centroids.map((c, i) => 
+        Math.sqrt((c.x - clusters[i].cx) ** 2 + (c.y - clusters[i].cy) ** 2)
+      );
+      const avgShift = (shifts.reduce((a, b) => a + b) / shifts.length).toFixed(1);
+      const maxShift = Math.max(...shifts).toFixed(1);
+      
+      ctx.font = '11px Arial';
+      ctx.fillStyle = '#ef4444';
+      ctx.fillText(`● 노이즈: ${noiseCount}개`, 10, 18);
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillText('✕ 계산된 중심  ○ 실제 중심', 10, 270);
+      
+      const resultDiv = document.getElementById('noise-result');
+      resultDiv.innerHTML = `
+        <h4>📊 K-Means 군집화 결과</h4>
+        <p>
+          <span class="metric">노이즈 포인트: ${noiseCount}개 (${(noiseRatio * 100).toFixed(0)}%)</span>
+          <span class="metric ${avgShift > 25 ? 'bad' : avgShift > 12 ? 'warn' : 'good'}">평균 중심 이동: ${avgShift}px</span>
+          <span class="metric ${maxShift > 35 ? 'bad' : maxShift > 18 ? 'warn' : 'good'}">최대 중심 이동: ${maxShift}px</span>
+        </p>
+        <div class="insight">
+          💡 <strong>핵심 통찰:</strong> 
+          ${noiseRatio === 0 ? '노이즈가 없을 때 K-Means 중심점(✕)이 실제 군집 중심(○)과 거의 일치합니다.' : ''}
+          ${noiseRatio > 0 && noiseRatio <= 0.1 ? `${(noiseRatio * 100).toFixed(0)}%의 노이즈가 중심점을 평균 ${avgShift}px 이동시켰습니다. K-Means는 모든 점을 평균 내기 때문에 소수의 이상치에도 민감합니다.` : ''}
+          ${noiseRatio > 0.1 && noiseRatio <= 0.2 ? `${(noiseRatio * 100).toFixed(0)}%의 노이즈로 중심점이 크게 왜곡되었습니다(${avgShift}px 이동). 실제 데이터에서 이런 수준의 노이즈는 흔합니다.` : ''}
+          ${noiseRatio > 0.2 ? `${(noiseRatio * 100).toFixed(0)}%의 노이즈는 K-Means를 완전히 무력화시켰습니다. 이 경우 DBSCAN(노이즈 자동 분리) 또는 K-Medoids(중앙값 기반)가 필요합니다.` : ''}
+        </div>
+      `;
+    }
+
+    // 4. Concept Drift Demo
+    function updateTime() {
+      const t = document.getElementById('time-slider').value;
+      let label = '';
+      if (t == 0) label = '(학습 시점)';
+      else if (t < 30) label = '(미미한 변화)';
+      else if (t < 60) label = '(점진적 드리프트)';
+      else if (t < 80) label = '(심각한 드리프트)';
+      else label = '(모델 무력화)';
+      document.getElementById('time-val').textContent = `T=${t} ${label}`;
+    }
+
+    function runDriftDemo() {
+      const canvas = document.getElementById('drift-canvas');
+      const ctx = canvas.getContext('2d');
+      const time = parseInt(document.getElementById('time-slider').value);
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Decision boundary (trained at T=0)
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([10, 5]);
+      ctx.beginPath();
+      ctx.moveTo(0, 190);
+      ctx.lineTo(450, 90);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      const shift = time * 0.9;
+      
+      const classA = [];
+      for (let i = 0; i < 40; i++) {
+        classA.push({
+          x: randomGaussian(130, 45),
+          y: randomGaussian(240 - shift, 30)
+        });
+      }
+      
+      const classB = [];
+      for (let i = 0; i < 40; i++) {
+        classB.push({
+          x: randomGaussian(320, 45),
+          y: randomGaussian(70 + shift * 0.5, 30)
+        });
+      }
+      
+      ctx.fillStyle = '#3b82f6';
+      classA.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(Math.max(5, Math.min(445, p.x)), Math.max(5, Math.min(275, p.y)), 6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      
+      ctx.fillStyle = '#10b981';
+      classB.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(Math.max(5, Math.min(445, p.x)), Math.max(5, Math.min(275, p.y)), 6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      
+      const boundaryY = (x) => 190 - (x / 450) * 100;
+      let correct = 0;
+      classA.forEach(p => { if (p.y > boundaryY(p.x)) correct++; });
+      classB.forEach(p => { if (p.y < boundaryY(p.x)) correct++; });
+      const accuracy = (correct / 80 * 100).toFixed(1);
+      
+      ctx.font = '11px Arial';
+      ctx.fillStyle = '#ef4444';
+      ctx.fillText('--- 결정 경계 (T=0에서 학습)', 10, 18);
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillText('● 클래스 A', 10, 36);
+      ctx.fillStyle = '#10b981';
+      ctx.fillText('● 클래스 B', 80, 36);
+      
+      const resultDiv = document.getElementById('drift-result');
+      resultDiv.innerHTML = `
+        <h4>📊 시간에 따른 모델 성능 변화</h4>
+        <p>
+          <span class="metric">경과 시간: T=${time}</span>
+          <span class="metric ${accuracy > 85 ? 'good' : accuracy > 65 ? 'warn' : 'bad'}">현재 정확도: ${accuracy}%</span>
+          <span class="metric">초기 정확도: ~95%</span>
+          <span class="metric ${accuracy < 70 ? 'bad' : 'warn'}">성능 저하: ${(95 - parseFloat(accuracy)).toFixed(1)}%p</span>
+        </p>
+        <div class="insight">
+          💡 <strong>핵심 통찰:</strong> 
+          ${time === 0 ? 'T=0에서 학습한 결정 경계가 현재 데이터를 잘 분리합니다. 실제 환경에서는 이 시점의 성능이 최고입니다.' : ''}
+          ${time > 0 && time <= 30 ? `시간이 ${time}만큼 지나면서 데이터 분포가 미세하게 변했습니다. 아직 모델이 사용 가능하지만 모니터링이 필요합니다.` : ''}
+          ${time > 30 && time <= 60 ? `점진적 드리프트가 발생했습니다. 정확도가 ${accuracy}%로 하락했으며, 재학습을 고려해야 하는 시점입니다.` : ''}
+          ${time > 60 && time <= 80 ? `심각한 드리프트! 과거 결정 경계가 현재 데이터와 맞지 않습니다. 즉각적인 모델 재학습이 필요합니다.` : ''}
+          ${time > 80 ? `모델이 완전히 무력화되었습니다. T=0의 결정 경계로는 현재 데이터를 분류할 수 없습니다. COVID-19 팬데믹 때 많은 예측 모델이 이런 상황을 겪었습니다.` : ''}
+        </div>
+      `;
+    }
+
+    // 5. K-sensitivity Demo
+    let kDemoData = null;
+    
+    function updateK() {
+      document.getElementById('k-val').textContent = document.getElementById('k-slider').value;
+    }
+
+    function runKDemo() {
+      const canvas = document.getElementById('k-canvas');
+      const ctx = canvas.getContext('2d');
+      const K = parseInt(document.getElementById('k-slider').value);
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      if (!kDemoData) {
+        kDemoData = [];
+        const centers = [
+          { x: 90, y: 70 }, { x: 360, y: 70 },
+          { x: 130, y: 210 }, { x: 320, y: 220 }
+        ];
+        centers.forEach(c => {
+          for (let i = 0; i < 25; i++) {
+            kDemoData.push({
+              x: randomGaussian(c.x, 32),
+              y: randomGaussian(c.y, 28)
+            });
+          }
+        });
+      }
+      
+      const points = kDemoData.map(p => ({ ...p }));
+      
+      let centroids = [];
+      for (let i = 0; i < K; i++) {
+        centroids.push({
+          x: 60 + Math.random() * 330,
+          y: 50 + Math.random() * 180
+        });
+      }
+      
+      for (let iter = 0; iter < 15; iter++) {
+        points.forEach(p => {
+          let minDist = Infinity;
+          centroids.forEach((c, i) => {
+            const dist = Math.sqrt((p.x - c.x) ** 2 + (p.y - c.y) ** 2);
+            if (dist < minDist) {
+              minDist = dist;
+              p.cluster = i;
+            }
+          });
+        });
+        
+        centroids = centroids.map((_, i) => {
+          const assigned = points.filter(p => p.cluster === i);
+          if (assigned.length === 0) return { x: Math.random() * 400, y: Math.random() * 280 };
+          return {
+            x: assigned.reduce((s, p) => s + p.x, 0) / assigned.length,
+            y: assigned.reduce((s, p) => s + p.y, 0) / assigned.length
+          };
+        });
+      }
+      
+      // Silhouette score approximation
+      let silhouette = 0;
+      points.forEach(p => {
+        const sameCluster = points.filter(q => q.cluster === p.cluster && q !== p);
+        const a = sameCluster.length > 0 ? sameCluster.reduce((s, q) => s + Math.sqrt((p.x - q.x) ** 2 + (p.y - q.y) ** 2), 0) / sameCluster.length : 0;
+        
+        let minB = Infinity;
+        for (let k = 0; k < K; k++) {
+          if (k !== p.cluster) {
+            const otherCluster = points.filter(q => q.cluster === k);
+            if (otherCluster.length > 0) {
+              const b = otherCluster.reduce((s, q) => s + Math.sqrt((p.x - q.x) ** 2 + (p.y - q.y) ** 2), 0) / otherCluster.length;
+              minB = Math.min(minB, b);
+            }
+          }
+        }
+        
+        if (minB !== Infinity && Math.max(a, minB) > 0) {
+          silhouette += (minB - a) / Math.max(a, minB);
+        }
+      });
+      silhouette = (silhouette / points.length).toFixed(3);
+      
+      const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+      points.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = colors[p.cluster % colors.length];
+        ctx.fill();
+      });
+      
+      centroids.forEach((c, i) => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 11, 0, Math.PI * 2);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(i + 1, c.x, c.y + 4);
+        ctx.textAlign = 'left';
+      });
+      
+      ctx.font = '12px Arial';
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillText(`K = ${K} (데이터의 실제 군집 수: 4개)`, 10, 20);
+      
+      const resultDiv = document.getElementById('k-result');
+      const optimalK = 4;
+      resultDiv.innerHTML = `
+        <h4>📊 K=${K} 군집화 결과</h4>
+        <p>
+          <span class="metric">설정된 K: ${K}</span>
+          <span class="metric">실제 군집 수: 4</span>
+          <span class="metric ${Math.abs(K - optimalK) === 0 ? 'good' : Math.abs(K - optimalK) <= 1 ? 'warn' : 'bad'}">Silhouette Score: ${silhouette}</span>
+        </p>
+        <div class="insight">
+          💡 <strong>핵심 통찰:</strong> 
+          ${K < 3 ? `K=${K}는 너무 작습니다. 서로 다른 자연스러운 군집들이 강제로 하나로 합쳐졌습니다. Silhouette Score(${silhouette})가 낮은 이유입니다.` : ''}
+          ${K === 3 ? 'K=3은 실제 군집 수(4)보다 적어, 두 군집이 하나로 합쳐졌습니다.' : ''}
+          ${K === 4 ? `K=4가 데이터의 실제 구조와 일치합니다! Silhouette Score(${silhouette})가 가장 높습니다.` : ''}
+          ${K === 5 ? 'K=5는 실제 군집 수(4)보다 크지만, 하나의 군집이 둘로 나뉘어도 큰 문제가 아닐 수 있습니다.' : ''}
+          ${K > 5 ? `K=${K}은 너무 큽니다. 자연스러운 군집들이 인위적으로 쪼개졌습니다. 실무에서는 Elbow Method나 Silhouette Score로 최적 K를 찾습니다.` : ''}
+          <br><br>
+          <strong>실무 고려사항:</strong> 비즈니스에서는 "통계적으로 최적"보다 "관리 가능한 수"가 중요할 수 있습니다. 고객 세그먼트 7개 vs 50개 중 마케팅팀이 실행 가능한 것은?
+        </div>
+      `;
+    }
+
+    // Initial render
+    runImbalanceDemo();
+  </script>
+</body>
+</html>
