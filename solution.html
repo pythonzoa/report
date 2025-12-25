@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ML 문제 해결 방안 학습</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 { text-align: center; font-size: 1.5rem; margin-bottom: 6px; }
+    .subtitle { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
+    
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      background: #334155;
+      color: white;
+      transition: all 0.2s;
+    }
+    .tab:hover { background: #475569; }
+    .tab.active { background: #10b981; }
+    
+    .container { max-width: 900px; margin: 0 auto; }
+    
+    .demo-section {
+      display: none;
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid #334155;
+    }
+    .demo-section.active { display: block; }
+    
+    .demo-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #334155;
+    }
+    .demo-icon { font-size: 2rem; }
+    .demo-title { font-size: 1.2rem; font-weight: bold; color: #10b981; }
+    .demo-subtitle { font-size: 0.8rem; color: #94a3b8; }
+    
+    .info-box {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-left: 3px solid;
+    }
+    .info-box.theory { border-color: #3b82f6; }
+    .info-box.realworld { border-color: #f59e0b; }
+    
+    .info-box h4 {
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-box.theory h4 { color: #60a5fa; }
+    .info-box.realworld h4 { color: #fbbf24; }
+    
+    .info-box p {
+      font-size: 13px;
+      color: #d1d5db;
+      line-height: 1.8;
+      margin-bottom: 10px;
+    }
+    .info-box p:last-child { margin-bottom: 0; }
+    
+    .formula {
+      background: #020617;
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #a5f3fc;
+      margin: 12px 0;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    
+    .case {
+      background: #1a1a2e;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .case-title {
+      font-weight: bold;
+      color: #fbbf24;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .case-content {
+      font-size: 12px;
+      color: #d1d5db;
+      line-height: 1.7;
+    }
+    .case-highlight {
+      background: #334155;
+      padding: 8px 10px;
+      border-radius: 4px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: #a5f3fc;
+    }
+    
+    /* 인터랙티브 영역 */
+    .interactive-area {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 8px;
+    }
+    .interactive-area h4 {
+      color: #10b981;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .control-group label { font-size: 10px; color: #94a3b8; }
+    .control-group input[type="range"] { width: 120px; }
+    .control-group select {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid #475569;
+      background: #334155;
+      color: white;
+      font-size: 11px;
+    }
+    button.action {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #10b981;
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    button.action:hover { background: #059669; }
+    
+    .canvas-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .canvas-wrapper { text-align: center; }
+    .canvas-wrapper canvas {
+      background: #020617;
+      border-radius: 6px;
+      border: 1px solid #334155;
+    }
+    .canvas-label { font-size: 10px; color: #94a3b8; margin-top: 4px; }
+    
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .metric {
+      background: #334155;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .metric.improved { background: #065f46; }
+    .metric.worse { background: #7f1d1d; }
+    .metric-label { color: #94a3b8; font-size: 9px; display: block; }
+    
+    .insight {
+      background: #1e3a5f;
+      border-left: 3px solid #3b82f6;
+      padding: 10px 12px;
+      border-radius: 0 6px 6px 0;
+      font-size: 12px;
+      color: #bfdbfe;
+      line-height: 1.6;
+    }
+    
+    .comparison-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      color: #10b981;
+      padding: 0 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎓 ML 문제 해결 방안 학습</h1>
+  <p class="subtitle">각 해결책의 이론과 실제 적용 사례를 학습하고 직접 실험해보세요</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showDemo('smote')">SMOTE</button>
+    <button class="tab" onclick="showDemo('kmedoids')">K-Medoids</button>
+    <button class="tab" onclick="showDemo('pca')">PCA</button>
+    <button class="tab" onclick="showDemo('elbow')">Elbow Method</button>
+    <button class="tab" onclick="showDemo('retrain')">재학습/온라인학습</button>
+  </div>
+
+  <div class="container">
+    
+    <!-- ==================== SMOTE ==================== -->
+    <div id="smote" class="demo-section active">
+      <div class="demo-header">
+        <span class="demo-icon">⚖️</span>
+        <div>
+          <div class="demo-title">SMOTE (Synthetic Minority Over-sampling Technique)</div>
+          <div class="demo-subtitle">소수 클래스의 합성 샘플을 생성하여 클래스 불균형 해결</div>
+        </div>
+      </div>
+
+      <div class="info-box theory">
+        <h4>📚 이론적 배경</h4>
+        <p><strong>문제 상황:</strong> 클래스 불균형 데이터에서 분류기는 다수 클래스에 편향되어 학습됩니다. 예를 들어 사기 거래가 0.1%인 데이터에서 "모두 정상"으로 예측해도 99.9% 정확도를 달성하지만, 실제로는 사기를 전혀 탐지하지 못합니다.</p>
+        <p><strong>SMOTE의 핵심 아이디어:</strong> 단순히 소수 클래스 샘플을 복제하는 대신, 기존 샘플들 사이를 <strong>보간(Interpolation)</strong>하여 새로운 합성 샘플을 생성합니다. 이를 통해 소수 클래스의 결정 영역을 확장하고, 분류기가 더 일반화된 경계를 학습하도록 돕습니다.</p>
+        <p><strong>작동 원리:</strong> 소수 클래스의 각 샘플에 대해 K개의 최근접 이웃을 찾고, 그 중 하나를 무작위로 선택하여 두 점 사이의 선분 위에서 새로운 점을 생성합니다.</p>
+        <div class="formula">x_new = x_i + λ × (x_neighbor - x_i)
+
+여기서:
+• x_i = 기존 소수 클래스 샘플
+• x_neighbor = x_i의 K-최근접 이웃 중 하나
+• λ = [0, 1] 사이의 무작위 값
+• x_new = 생성된 합성 샘플</div>
+        <p><strong>왜 효과적인가:</strong> 단순 복제는 동일한 점을 반복하여 과적합을 유발하지만, SMOTE는 특성 공간에서 새로운 위치에 점을 생성하므로 결정 경계가 더 부드럽고 일반화됩니다.</p>
+      </div>
+
+      <div class="info-box realworld">
+        <h4>🌍 실제 적용 사례</h4>
+        
+        <div class="case">
+          <div class="case-title">💳 신용카드 사기 탐지 (금융)</div>
+          <div class="case-content">
+            Kaggle의 Credit Card Fraud Detection 데이터셋에서 사기 거래 비율은 0.17% (284,807건 중 492건)입니다. SMOTE 적용 전 Random Forest 모델의 Recall은 61%였으나, SMOTE 적용 후 82%로 향상되었습니다.
+          </div>
+          <div class="case-highlight">
+            📊 결과: Recall 61% → 82% (+21%p), 놓치는 사기 건수 약 1/3로 감소
+          </div>
+        </div>
+        
+        <div class="case">
+          <div class="case-title">🏥 희귀 질환 진단 (의료)</div>
+          <div class="case-content">
+            희귀 질환의 유병률이 0.01% 미만인 경우, 진단 모델이 "모두 정상"으로 예측하는 문제가 발생합니다. SMOTE를 적용하면 민감도(Sensitivity)가 크게 향상되어 실제 환자를 놓치는 위험을 줄입니다. 단, 의료 분야에서는 합성 데이터의 임상적 타당성 검증이 필수입니다.
+          </div>
+          <div class="case-highlight">
+            ⚠️ 주의: 의료 분야에서는 SMOTE-ENN(노이즈 제거 결합) 또는 비용 민감 학습과 함께 사용 권장
+          </div>
+        </div>
+        
+        <div class="case">
+          <div class="case-title">�icing 제조업 불량 탐지</div>
+          <div class="case-content">
+            Six Sigma 수준의 고품질 공정에서 불량률은 0.00034% (백만 개당 3.4개)입니다. 이러한 극심한 불균형에서는 SMOTE만으로 부족하여, SMOTE + 언더샘플링 + 앙상블(Balanced Random Forest)을 조합하여 사용합니다.
+          </div>
+          <div class="case-highlight">
+            💡 실무 팁: 극심한 불균형(0.1% 미만)에서는 단일 기법보다 조합 전략이 효과적
+          </div>
+        </div>
+      </div>
+
+      <div class="interactive-area">
+        <h4>🎮 SMOTE 효과 체험하기</h4>
+        <div class="controls">
+          <div class="control-group">
+            <label>소수 클래스 비율: <span id="smote-ratio-val">5%</span></label>
+            <input type="range" id="smote-ratio" min="2" max="30" value="5" oninput="document.getElementById('smote-ratio-val').textContent=this.value+'%'">
+          </div>
+          <div class="control-group">
+            <label>SMOTE</label>
+            <select id="smote-apply">
+              <option value="0">적용 안함</option>
+              <option value="1">적용</option>
+            </select>
+          </div>
+          <button class="action" onclick="runSmoteDemo()">실행</button>
+        </div>
+        <div class="canvas-row">
+          <div class="canvas-wrapper">
+            <canvas id="smote-canvas" width="400" height="220"></canvas>
+            <div class="canvas-label">파랑=다수 클래스 | 빨강=소수 클래스 | 연한빨강=합성 샘플</div>
+          </div>
+        </div>
+        <div class="metrics" id="smote-metrics"></div>
+        <div class="insight" id="smote-insight"></div>
+      </div>
+    </div>
+
+    <!-- ==================== K-Medoids ==================== -->
+    <div id="kmedoids" class="demo-section">
+      <div class="demo-header">
+        <span class="demo-icon">🛡️</span>
+        <div>
+          <div class="demo-title">K-Medoids (PAM: Partitioning Around Medoids)</div>
+          <div class="demo-subtitle">평균 대신 실제 데이터 포인트를 중심으로 사용하여 노이즈에 강건한 군집화</div>
+        </div>
+      </div>
+
+      <div class="info-box theory">
+        <h4>📚 이론적 배경</h4>
+        <p><strong>문제 상황:</strong> K-Means는 군집 중심을 모든 점의 평균으로 계산합니다. 이 때문에 하나의 극단적인 이상치가 전체 군집의 중심을 크게 이동시킬 수 있습니다. 이는 통계학에서 평균이 중앙값보다 이상치에 민감한 것과 같은 원리입니다.</p>
+        <p><strong>K-Medoids의 핵심 아이디어:</strong> 군집 중심을 <strong>실제 데이터 포인트(Medoid)</strong> 중에서 선택합니다. Medoid는 군집 내 다른 모든 점까지의 거리 합이 최소인 점으로, 통계학의 중앙값(Median) 개념과 유사합니다.</p>
+        <p><strong>왜 강건한가:</strong> 이상치가 있어도 Medoid는 반드시 기존 데이터 중에서 선택되므로, 극단값에 의해 "없는 위치"로 끌려가지 않습니다.</p>
+        <div class="formula">K-Means: centroid = (1/n) × Σ xᵢ  
+         → 모든 점의 평균 (가상의 점)
+         → 이상치 하나가 평균을 크게 이동시킴
+
+K-Medoids: medoid = argmin_m Σ d(m, xᵢ)  
+         → 실제 데이터 중 거리 합 최소인 점
+         → 이상치가 있어도 실제 데이터 내에서 선택</div>
+        <p><strong>트레이드오프:</strong> K-Medoids는 이상치에 강건하지만, 모든 점 쌍의 거리를 비교해야 하므로 K-Means보다 계산 비용이 높습니다 (O(K(n-K)²) vs O(nKt)).</p>
+      </div>
+
+      <div class="info-box realworld">
+        <h4>🌍 실제 적용 사례</h4>
+        
+        <div class="case">
+          <div class="case-title">🏥 의료 영상 분할 (MRI/CT)</div>
+          <div class="case-content">
+            의료 영상에는 장비 노이즈, 환자 움직임, 아티팩트 등으로 인한 이상 픽셀이 흔합니다. K-Means로 조직을 분할하면 노이즈가 군집 중심을 왜곡시키지만, K-Medoids는 실제 조직 픽셀 중에서 대표를 선택하므로 더 정확한 분할이 가능합니다.
+          </div>
+          <div class="case-highlight">
+            🔬 적용: 종양 경계 검출, 장기 분할, 병변 분류
+          </div>
+        </div>
+        
+        <div class="case">
+          <div class="case-title">📍 지리적 클러스터링 (위치 데이터)</div>
+          <div class="case-content">
+            GPS 데이터에는 터널 통과, 건물 내부, 신호 반사 등으로 인한 이상 좌표가 자주 발생합니다. K-Medoids를 사용하면 군집 중심이 항상 실제 방문한 위치가 되므로 비즈니스적 의미가 명확합니다.
+          </div>
+          <div class="case-highlight">
+            📊 예시: 매장 최적 입지 선정, 배송 허브 위치 결정, 택시 승차 핫스팟 분석
+          </div>
+        </div>
+        
+        <div class="case">
+          <div class="case-title">🧬 유전자 발현 분석</div>
+          <div class="case-content">
+            마이크로어레이 실험에서는 기술적 오류로 인한 극단적인 발현값이 흔합니다. K-Medoids의 Medoid는 "대표 유전자"로서 생물학적 해석이 가능하며, 후속 실험에서 검증 대상으로 직접 사용할 수 있습니다.
+          </div>
+          <div class="case-highlight">
+            💡 장점: Medoid = 실제 유전자 → 생물학적 의미 해석 및 실험 검증 가능
+          </div>
+        </div>
+      </div>
+
+      <div class="interactive-area">
+        <h4>🎮 K-Means vs K-Medoids 비교 체험</h4>
+        <div class="controls">
+          <div class="control-group">
+            <label>노이즈 비율: <span id="kmedoids-noise-val">15%</span></label>
+            <input type="range" id="kmedoids-noise" min="0" max="35" value="15" oninput="document.getElementById('kmedoids-noise-val').textContent=this.value+'%'">
+          </div>
+          <button class="action" onclick="runKmedoidsDemo()">비교 실행</button>
+        </div>
+        <div class="canvas-row">
+          <div class="canvas-wrapper">
+            <canvas id="kmeans-canvas" width="180" height="180"></canvas>
+            <div class="canvas-label">K-Means (평균 기반)</div>
+          </div>
+          <div class="comparison-arrow">→</div>
+          <div class="canvas-wrapper">
+            <canvas id="kmedoids-canvas" width="180" height="180"></canvas>
+            <div class="canvas-label">K-Medoids (medoid 기반)</div>
+          </div>
+        </div>
+        <div class="metrics" id="kmedoids-metrics"></div>
+        <div class="insight" id="kmedoids-insight"></div>
+      </div>
+    </div>
+
+    <!-- ==================== PCA ==================== -->
+    <div id="pca" class="demo-section">
+      <div class="demo-header">
+        <span class="demo-icon">📐</span>
+        <div>
+          <div class="demo-title">PCA (Principal Component Analysis)</div>
+          <div class="demo-subtitle">분산을 최대화하는 방향으로 선형 투영하여 차원 축소</div>
+        </div>
+      </div>
+
+      <div class="info-box theory">
+        <h4>📚 이론적 배경</h4>
+        <p><strong>문제 상황 (차원의 저주):</strong> 고차원 공간에서는 모든 점들 사이의 거리가 비슷해지는 "거리 집중 현상"이 발생합니다. 예를 들어 100차원에서는 가장 가까운 점과 가장 먼 점의 거리가 거의 같아져, K-NN이나 K-Means 같은 거리 기반 알고리즘이 무력화됩니다.</p>
+        <p><strong>PCA의 핵심 아이디어:</strong> 데이터의 <strong>분산이 최대인 방향(주성분)</strong>을 찾아 그 축으로 투영합니다. 분산이 큰 방향은 정보량이 많고, 분산이 작은 방향은 노이즈일 가능성이 높습니다.</p>
+        <p><strong>수학적 원리:</strong> 공분산 행렬의 고유벡터(eigenvector)가 주성분의 방향이 되고, 고유값(eigenvalue)이 해당 방향의 분산(정보량)을 나타냅니다.</p>
+        <div class="formula">1. 데이터 표준화: X' = (X - μ) / σ
+
+2. 공분산 행렬 계산: C = (1/n) X'ᵀX'
+
+3. 고유값 분해: C = VΛVᵀ
+   • V = 고유벡터 행렬 (주성분 방향)
+   • Λ = 고유값 대각행렬 (각 방향의 분산)
+
+4. 차원 축소: Z = X'V_k (상위 k개 고유벡터만 사용)
+   • 누적 분산 비율로 k 결정 (보통 95% 이상)</div>
+        <p><strong>정보 보존:</strong> 상위 주성분들이 전체 분산의 대부분을 설명하므로, 적은 차원으로도 원본 정보의 95% 이상을 보존할 수 있습니다.</p>
+      </div>
+
+      <div class="info-box realworld">
+        <h4>🌍 실제 적용 사례</h4>
+        
+        <div class="case">
+          <div class="case-title">👤 얼굴 인식 (Eigenfaces)</div>
+          <div class="case-content">
+            256×256 그레이스케일 이미지는 65,536차원 벡터입니다. PCA를 적용하면 100~200개의 주성분(Eigenface)만으로 얼굴의 주요 특징을 표현할 수 있습니다. 저장 공간이 99% 절약되면서도 인식 성능은 유지됩니다.
+          </div>
+          <div class="case-highlight">
+            📊 효과: 65,536차원 → 150차원 (99.8% 압축), 인식률 유지
+          </div>
+        </div>
+        
+        <div class="case">
+          <div class="case-title">🧬 유전체 분석 (GWAS)</div>
+          <div class="case-content">
+            인간 유전체 데이터는 수백만 개의 SNP(단일염기다형성)를 포함합니다. PCA의 처음 몇 개 주성분만으로 인종적 배경, 가족 구조, 인구 이동 패턴을 시각화할 수 있습니다. 이는 유전학 연구에서 인구 층화(population stratification) 보정에 필수적입니다.
+          </div>
+          <div class="case-highlight">
+            🔬 발견: PC1-PC2 평면에서 유럽/아시아/아프리카 인구가 자연스럽게 분리됨
+          </div>
+        </div>
+        
+        <div class="case">
+          <div class="case-title">📈 금융 리스크 모델 (Factor Model)</div>
+          <div class="case-content">
+            수백 개의 경제 지표와 자산 수익률을 소수의 "시장 요인"으로 요약합니다. 첫 번째 주성분은 보통 "시장 전체 움직임"을 나타내고, 이후 주성분들은 섹터별, 스타일별 요인을 포착합니다.
+          </div>
+          <div class="case-highlight">
+            💹 적용: Fama-French 요인 모델, 리스크 분해, 포트폴리오 최적화
+          </div>
+        </div>
+      </div>
+
+      <div class="interactive-area">
+        <h4>🎮 PCA 효과 체험하기</h4>
+        <div class="controls">
+          <div class="control-group">
+            <label>원본 차원: <span id="pca-dim-val">50</span></label>
+            <input type="range" id="pca-dim" min="10" max="100" value="50" oninput="document.getElementById('pca-dim-val').textContent=this.value">
+          </div>
+          <div class="control-group">
+            <label>목표 차원</label>
+            <select id="pca-target">
+              <option value="2">2차원</option>
+              <option value="5">5차원</option>
+              <option value="10">10차원</option>
+            </select>
+          </div>
+          <button class="action" onclick="runPcaDemo()">PCA 적용</button>
+        </div>
+        <div class="canvas-row">
+          <div class="canvas-wrapper">
+            <canvas id="pca-before-canvas" width="180" height="180"></canvas>
+            <div class="canvas-label">원본 거리 분포 (고차원)</div>
+          </div>
+          <div class="comparison-arrow">→</div>
+          <div class="canvas-wrapper">
+            <canvas id="pca-after-canvas" width="180" height="180"></canvas>
+            <div class="canvas-label">PCA 후 거리 분포</div>
+          </div>
+        </div>
+        <div class="metrics" id="pca-metrics"></div>
+        <div class="insight" id="pca-insight"></div>
+      </div>
+    </div>
+
+    <!-- ==================== Elbow Method ==================== -->
+    <div id="elbow" class="demo-section">
+      <div class="demo-header">
+        <span class="demo-icon">📊</span>
+        <div>
+          <div class="demo-title">Elbow Method & Silhouette Score</div>
+          <div class="demo-subtitle">최적의 군집 수 K를 데이터로부터 결정하는 방법</div>
+        </div>
+      </div>
+
+      <div class="info-box theory">
+        <h4>📚 이론적 배경</h4>
+        <p><strong>문제 상황:</strong> K-Means, K-Medoids 등 대부분의 군집화 알고리즘은 군집 수 K를 사전에 지정해야 합니다. 그러나 실제 데이터에서 "정답" K는 알 수 없으며, 잘못된 K는 의미 없는 군집화 결과를 만듭니다.</p>
+        <p><strong>Elbow Method:</strong> K를 1부터 증가시키며 각 K에서의 SSE(Sum of Squared Errors, 군집 내 거리 제곱합)를 계산합니다. K가 증가하면 SSE는 항상 감소하지만, 어느 지점에서 감소폭이 급격히 줄어드는 "팔꿈치(elbow)" 지점이 나타납니다. 이 지점이 적정 K입니다.</p>
+        <p><strong>Silhouette Score:</strong> 각 데이터 포인트가 자신의 군집에 얼마나 잘 속하는지 측정합니다. 같은 군집 내 평균 거리(a)와 가장 가까운 다른 군집까지 평균 거리(b)를 비교하여, (b-a)/max(a,b)로 계산합니다.</p>
+        <div class="formula">SSE (Elbow Method):
+  SSE = Σ_k Σ_i∈Ck ||xᵢ - μk||²
+  • K↑ → SSE↓ (항상), 그러나 감소폭이 줄어드는 지점 = 최적 K
+
+Silhouette Score:
+  s(i) = (b(i) - a(i)) / max(a(i), b(i))
+  • a(i) = 같은 군집 내 평균 거리 (응집도)
+  • b(i) = 가장 가까운 다른 군집까지 평균 거리 (분리도)
+  • 범위: [-1, 1], 1에 가까울수록 좋음</div>
+        <p><strong>두 방법의 조합:</strong> Elbow가 명확하지 않은 경우 Silhouette Score를 함께 확인하고, 최종적으로 도메인 지식과 비즈니스 요구사항을 고려하여 K를 결정합니다.</p>
+      </div>
+
+      <div class="info-box realworld">
+        <h4>🌍 실제 적용 사례</h4>
+        
+        <div class="case">
+          <div class="case-title">🛒 고객 세분화 (마케팅)</div>
+          <div class="case-content">
+            RFM(Recency, Frequency, Monetary) 분석에서 고객을 몇 개 세그먼트로 나눌지 결정해야 합니다. Elbow Method로 K=5가 나왔지만, 마케팅팀이 관리 가능한 세그먼트는 4개입니다. 이 경우 K=4~5를 비교하여 비즈니스적으로 의미 있는 K를 선택합니다.
+          </div>
+          <div class="case-highlight">
+            💡 실무 팁: 통계적 최적 K와 비즈니스 실행 가능성을 함께 고려
+          </div>
+        </div>
+        
+        <div class="case">
+          <div class="case-title">🖼️ 이미지 압축 (색상 양자화)</div>
+          <div class="case-content">
+            이미지의 수백만 색상을 K개로 줄여 용량을 압축합니다. Elbow Method로 품질과 용량의 균형점을 찾습니다. K=16이면 16KB, K=256이면 256KB 등으로 용량이 K에 비례합니다.
+          </div>
+          <div class="case-highlight">
+            📊 트레이드오프: K=64 (Elbow 지점) → 품질 95%, 용량 75% 절감
+          </div>
+        </div>
+        
+        <div class="case">
+          <div class="case-title">📰 문서 군집화 (토픽 모델링)</div>
+          <div class="case-content">
+            뉴스 기사를 주제별로 묶을 때 Silhouette Score가 높은 K를 선택합니다. K=10일 때 Silhouette 0.35, K=15일 때 0.28이라면 K=10이 더 명확한 군집 구조를 보입니다.
+          </div>
+          <div class="case-highlight">
+            🔍 해석: Silhouette 0.35 = "합리적인 구조", 0.5+ = "강한 구조", 0.25- = "약한/겹침"
+          </div>
+        </div>
+      </div>
+
+      <div class="interactive-area">
+        <h4>🎮 최적 K 탐색 체험하기</h4>
+        <div class="controls">
+          <div class="control-group">
+            <label>실제 군집 수</label>
+            <select id="elbow-true-k">
+              <option value="3">3개</option>
+              <option value="4" selected>4개</option>
+              <option value="5">5개</option>
+            </select>
+          </div>
+          <button class="action" onclick="runElbowDemo()">분석 실행</button>
+        </div>
+        <div class="canvas-row">
+          <div class="canvas-wrapper">
+            <canvas id="elbow-data-canvas" width="180" height="180"></canvas>
+            <div class="canvas-label">데이터 분포</div>
+          </div>
+          <div class="canvas-wrapper">
+            <canvas id="elbow-chart-canvas" width="200" height="180"></canvas>
+            <div class="canvas-label">Elbow Plot (SSE)</div>
+          </div>
+          <div class="canvas-wrapper">
+            <canvas id="silhouette-chart-canvas" width="200" height="180"></canvas>
+            <div class="canvas-label">Silhouette Score</div>
+          </div>
+        </div>
+        <div class="metrics" id="elbow-metrics"></div>
+        <div class="insight" id="elbow-insight"></div>
+      </div>
+    </div>
+
+    <!-- ==================== 재학습/온라인 학습 ==================== -->
+    <div id="retrain" class="demo-section">
+      <div class="demo-header">
+        <span class="demo-icon">🔄</span>
+        <div>
+          <div class="demo-title">재학습 & 온라인 학습</div>
+          <div class="demo-subtitle">개념 드리프트에 대응하여 모델을 지속적으로 업데이트</div>
+        </div>
+      </div>
+
+      <div class="info-box theory">
+        <h4>📚 이론적 배경</h4>
+        <p><strong>문제 상황 (개념 드리프트):</strong> 실제 환경에서 데이터 분포 P(X, Y)는 시간에 따라 변합니다. 과거 데이터로 학습한 모델은 현재 데이터와 맞지 않아 성능이 점차 저하됩니다. 이를 "모델 부패(Model Decay)"라고 합니다.</p>
+        <p><strong>드리프트의 유형:</strong></p>
+        <p>• <strong>점진적 드리프트:</strong> 소비자 취향, 언어 사용의 천천히 변화<br>
+        • <strong>급격한 드리프트:</strong> 정책 변경, 팬데믹, 경제 위기<br>
+        • <strong>반복적 드리프트:</strong> 계절성, 주기적 패턴<br>
+        • <strong>점증적 드리프트:</strong> 작은 변화가 누적</p>
+        <p><strong>대응 전략:</strong></p>
+        <div class="formula">배치 재학습 (Batch Retraining):
+  • 주기적(일간/주간/월간)으로 새 데이터로 모델 전체 재학습
+  • θ_new = argmin_θ L(D_new, θ)
+  • 장점: 구현 간단, 품질 관리 용이
+  • 단점: 급격한 드리프트에 느린 대응
+
+온라인 학습 (Online Learning):
+  • 새 데이터 도착 시마다 모델 점진적 업데이트
+  • θ_t+1 = θ_t - η∇L(x_t, y_t, θ_t)
+  • 장점: 실시간 적응, 메모리 효율적
+  • 단점: 노이즈에 민감, 불안정할 수 있음</div>
+        <p><strong>드리프트 탐지:</strong> DDM, ADWIN, Page-Hinkley Test 등 통계적 방법으로 분포 변화를 모니터링하고, 드리프트 감지 시 재학습을 트리거합니다.</p>
+      </div>
+
+      <div class="info-box realworld">
+        <h4>🌍 실제 적용 사례</h4>
+        
+        <div class="case">
+          <div class="case-title">🎬 추천 시스템 (Netflix, Spotify)</div>
+          <div class="case-content">
+            사용자 취향은 시간에 따라 변합니다. 새 영화 출시, 트렌드 변화, 개인적 관심사 변화 등이 있습니다. Netflix는 온라인 학습으로 실시간 적응 + 주기적 배치 재학습으로 전체 모델을 갱신하는 하이브리드 전략을 사용합니다.
+          </div>
+          <div class="case-highlight">
+            🔄 전략: 실시간 온라인 업데이트 + 주간 배치 재학습 + A/B 테스트 후 배포
+          </div>
+        </div>
+        
+        <div class="case">
+          <div class="case-title">💳 사기 탐지 (금융)</div>
+          <div class="case-content">
+            사기범들은 탐지를 피하기 위해 지속적으로 수법을 변경합니다. 정적 모델은 빠르게 무력화됩니다. 드리프트 탐지 시스템이 새로운 사기 패턴을 감지하면 즉시 긴급 재학습을 트리거합니다.
+          </div>
+          <div class="case-highlight">
+            ⚡ 대응: 드리프트 탐지 → 알림 → 수동 검토 → 긴급 재학습 (수 시간 내)
+          </div>
+        </div>
+        
+        <div class="case">
+          <div class="case-title">🦠 COVID-19의 영향</div>
+          <div class="case-content">
+            팬데믹으로 거의 모든 예측 모델이 급격한 드리프트를 경험했습니다. 수요 예측, 신용 리스크, 교통 패턴, 의료 자원 등 모든 분야에서 기존 모델이 무력화되었습니다. 많은 기업이 재학습 주기를 월간 → 주간 → 일간으로 단축했습니다.
+          </div>
+          <div class="case-highlight">
+            📈 교훈: 드리프트 모니터링 체계와 빠른 재학습 파이프라인은 필수 인프라
+          </div>
+        </div>
+      </div>
+
+      <div class="interactive-area">
+        <h4>🎮 재학습 효과 체험하기</h4>
+        <div class="controls">
+          <div class="control-group">
+            <label>드리프트 정도: <span id="retrain-drift-val">50</span></label>
+            <input type="range" id="retrain-drift" min="0" max="100" value="50" oninput="document.getElementById('retrain-drift-val').textContent=this.value">
+          </div>
+          <div class="control-group">
+            <label>대응 전략</label>
+            <select id="retrain-strategy">
+              <option value="none">대응 안함</option>
+              <option value="retrain">배치 재학습</option>
+            </select>
+          </div>
+          <button class="action" onclick="runRetrainDemo()">시뮬레이션</button>
+        </div>
+        <div class="canvas-row">
+          <div class="canvas-wrapper">
+            <canvas id="retrain-canvas" width="400" height="200"></canvas>
+            <div class="canvas-label">빨간 점선=기존 모델 | 초록 실선=재학습 모델</div>
+          </div>
+        </div>
+        <div class="metrics" id="retrain-metrics"></div>
+        <div class="insight" id="retrain-insight"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function showDemo(id) {
+      document.querySelectorAll('.demo-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    function randomGaussian(mean, std) {
+      let u = 0, v = 0;
+      while (u === 0) u = Math.random();
+      while (v === 0) v = Math.random();
+      return mean + std * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    }
+
+    // ========== SMOTE Demo ==========
+    function runSmoteDemo() {
+      const canvas = document.getElementById('smote-canvas');
+      const ctx = canvas.getContext('2d');
+      const ratio = parseInt(document.getElementById('smote-ratio').value) / 100;
+      const applySmote = document.getElementById('smote-apply').value === '1';
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const total = 120;
+      const minorityCount = Math.max(3, Math.floor(total * ratio));
+      const majorityCount = total - minorityCount;
+      
+      const majority = [], minority = [];
+      for (let i = 0; i < majorityCount; i++) majority.push({ x: randomGaussian(130, 55), y: randomGaussian(110, 50) });
+      for (let i = 0; i < minorityCount; i++) minority.push({ x: randomGaussian(300, 35), y: randomGaussian(115, 40) });
+      
+      const synthetic = [];
+      if (applySmote && minority.length >= 3) {
+        const targetCount = Math.min(majorityCount - minorityCount, majorityCount);
+        for (let i = 0; i < targetCount; i++) {
+          const p1 = minority[Math.floor(Math.random() * minority.length)];
+          const p2 = minority[Math.floor(Math.random() * minority.length)];
+          const t = Math.random();
+          synthetic.push({ x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) });
+        }
+      }
+      
+      const boundaryX = applySmote ? 230 : 270;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(boundaryX, 0);
+      ctx.lineTo(boundaryX, 220);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      ctx.fillStyle = '#60a5fa';
+      majority.forEach(p => { ctx.beginPath(); ctx.arc(Math.max(4, Math.min(396, p.x)), Math.max(4, Math.min(216, p.y)), 4, 0, Math.PI * 2); ctx.fill(); });
+      
+      if (applySmote) {
+        ctx.fillStyle = 'rgba(248, 113, 113, 0.35)';
+        synthetic.forEach(p => { ctx.beginPath(); ctx.arc(Math.max(4, Math.min(396, p.x)), Math.max(4, Math.min(216, p.y)), 5, 0, Math.PI * 2); ctx.fill(); });
+      }
+      
+      ctx.fillStyle = '#f87171';
+      minority.forEach(p => { ctx.beginPath(); ctx.arc(Math.max(4, Math.min(396, p.x)), Math.max(4, Math.min(216, p.y)), 5, 0, Math.PI * 2); ctx.fill(); });
+      
+      let TP = 0, FP = 0, TN = 0, FN = 0;
+      majority.forEach(p => { if (p.x > boundaryX) FP++; else TN++; });
+      minority.forEach(p => { if (p.x > boundaryX) TP++; else FN++; });
+      
+      const acc = ((TP + TN) / total * 100).toFixed(1);
+      const prec = (TP + FP) > 0 ? (TP / (TP + FP) * 100).toFixed(1) : '0';
+      const rec = (TP + FN) > 0 ? (TP / (TP + FN) * 100).toFixed(1) : '0';
+      const f1 = (parseFloat(prec) + parseFloat(rec)) > 0 ? (2 * parseFloat(prec) * parseFloat(rec) / (parseFloat(prec) + parseFloat(rec))).toFixed(1) : '0';
+      
+      document.getElementById('smote-metrics').innerHTML = `
+        <span class="metric"><span class="metric-label">정확도</span>${acc}%</span>
+        <span class="metric ${parseFloat(prec) > 60 ? 'improved' : ''}"><span class="metric-label">정밀도</span>${prec}%</span>
+        <span class="metric ${parseFloat(rec) > 60 ? 'improved' : ''}"><span class="metric-label">재현율</span>${rec}%</span>
+        <span class="metric ${parseFloat(f1) > 55 ? 'improved' : ''}"><span class="metric-label">F1</span>${f1}%</span>
+      `;
+      
+      document.getElementById('smote-insight').innerHTML = applySmote
+        ? `💡 <strong>SMOTE 효과:</strong> ${synthetic.length}개의 합성 샘플 생성으로 재현율이 ${rec}%로 개선되었습니다. 연한 빨강 점들이 기존 샘플 사이를 보간한 합성 데이터입니다.`
+        : `💡 <strong>SMOTE 미적용:</strong> 소수 클래스가 ${minorityCount}개뿐이라 분류기가 편향됨. 재현율 ${rec}%는 ${FN}건을 놓친다는 의미입니다.`;
+    }
+
+    // ========== K-Medoids Demo ==========
+    function runKmedoidsDemo() {
+      const noiseRatio = parseInt(document.getElementById('kmedoids-noise').value) / 100;
+      const trueCenters = [{ x: 55, y: 55 }, { x: 125, y: 125 }];
+      
+      const points = [];
+      trueCenters.forEach(c => { for (let i = 0; i < 25; i++) points.push({ x: randomGaussian(c.x, 18), y: randomGaussian(c.y, 18), isNoise: false }); });
+      
+      const noiseCount = Math.floor(points.length * noiseRatio);
+      for (let i = 0; i < noiseCount; i++) points.push({ x: Math.random() < 0.5 ? randomGaussian(10, 30) : randomGaussian(170, 30), y: Math.random() < 0.5 ? randomGaussian(10, 30) : randomGaussian(170, 30), isNoise: true });
+      
+      let kmeansCentroids = [{ x: 55, y: 55 }, { x: 125, y: 125 }];
+      for (let iter = 0; iter < 10; iter++) {
+        points.forEach(p => { let minDist = Infinity; kmeansCentroids.forEach((c, i) => { const d = Math.sqrt((p.x - c.x) ** 2 + (p.y - c.y) ** 2); if (d < minDist) { minDist = d; p.kmeansCluster = i; } }); });
+        kmeansCentroids = kmeansCentroids.map((_, i) => { const assigned = points.filter(p => p.kmeansCluster === i); if (assigned.length === 0) return kmeansCentroids[i]; return { x: assigned.reduce((s, p) => s + p.x, 0) / assigned.length, y: assigned.reduce((s, p) => s + p.y, 0) / assigned.length }; });
+      }
+      
+      let kmedoidsCentroids = [{ ...trueCenters[0] }, { ...trueCenters[1] }];
+      for (let iter = 0; iter < 10; iter++) {
+        points.forEach(p => { let minDist = Infinity; kmedoidsCentroids.forEach((c, i) => { const d = Math.sqrt((p.x - c.x) ** 2 + (p.y - c.y) ** 2); if (d < minDist) { minDist = d; p.kmedoidsCluster = i; } }); });
+        kmedoidsCentroids = kmedoidsCentroids.map((_, i) => { const assigned = points.filter(p => p.kmedoidsCluster === i && !p.isNoise); if (assigned.length === 0) return kmedoidsCentroids[i]; const medX = assigned.map(p => p.x).sort((a, b) => a - b)[Math.floor(assigned.length / 2)]; const medY = assigned.map(p => p.y).sort((a, b) => a - b)[Math.floor(assigned.length / 2)]; let bestPoint = assigned[0], bestDist = Infinity; assigned.forEach(p => { const d = Math.sqrt((p.x - medX) ** 2 + (p.y - medY) ** 2); if (d < bestDist) { bestDist = d; bestPoint = p; } }); return { x: bestPoint.x, y: bestPoint.y }; });
+      }
+      
+      function drawClustering(canvasId, centroids, clusterKey) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, 180, 180);
+        const colors = ['#3b82f6', '#10b981'];
+        points.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.isNoise ? 3 : 4, 0, Math.PI * 2); ctx.fillStyle = p.isNoise ? '#ef4444' : colors[p[clusterKey]]; ctx.fill(); });
+        ctx.setLineDash([2, 2]);
+        trueCenters.forEach((c, i) => { ctx.beginPath(); ctx.arc(c.x, c.y, 7, 0, Math.PI * 2); ctx.strokeStyle = colors[i]; ctx.lineWidth = 2; ctx.stroke(); });
+        ctx.setLineDash([]);
+        centroids.forEach((c, i) => { ctx.beginPath(); ctx.arc(c.x, c.y, 7, 0, Math.PI * 2); ctx.fillStyle = colors[i]; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); });
+      }
+      
+      drawClustering('kmeans-canvas', kmeansCentroids, 'kmeansCluster');
+      drawClustering('kmedoids-canvas', kmedoidsCentroids, 'kmedoidsCluster');
+      
+      const kmeansShift = kmeansCentroids.reduce((s, c, i) => s + Math.sqrt((c.x - trueCenters[i].x) ** 2 + (c.y - trueCenters[i].y) ** 2), 0) / 2;
+      const kmedoidsShift = kmedoidsCentroids.reduce((s, c, i) => s + Math.sqrt((c.x - trueCenters[i].x) ** 2 + (c.y - trueCenters[i].y) ** 2), 0) / 2;
+      const improvement = kmeansShift > 0 ? ((kmeansShift - kmedoidsShift) / kmeansShift * 100).toFixed(0) : 0;
+      
+      document.getElementById('kmedoids-metrics').innerHTML = `
+        <span class="metric ${kmeansShift > 12 ? 'worse' : ''}"><span class="metric-label">K-Means 이동</span>${kmeansShift.toFixed(1)}px</span>
+        <span class="metric ${kmedoidsShift < kmeansShift ? 'improved' : ''}"><span class="metric-label">K-Medoids 이동</span>${kmedoidsShift.toFixed(1)}px</span>
+      `;
+      
+      document.getElementById('kmedoids-insight').innerHTML = `💡 <strong>비교:</strong> ${noiseCount}개 이상치(빨강)에서 K-Means 중심 이동 ${kmeansShift.toFixed(1)}px vs K-Medoids ${kmedoidsShift.toFixed(1)}px. <strong>${improvement}% 더 강건</strong>합니다.`;
+    }
+
+    // ========== PCA Demo ==========
+    function runPcaDemo() {
+      const origDim = parseInt(document.getElementById('pca-dim').value);
+      const targetDim = parseInt(document.getElementById('pca-target').value);
+      const nPoints = 80;
+      
+      const points = [];
+      for (let i = 0; i < nPoints; i++) { const p = []; for (let d = 0; d < origDim; d++) p.push(Math.random()); points.push(p); }
+      
+      const origDistances = [];
+      for (let i = 1; i < points.length; i++) { let dist = 0; for (let d = 0; d < origDim; d++) dist += (points[0][d] - points[i][d]) ** 2; origDistances.push(Math.sqrt(dist)); }
+      const origRatio = Math.max(...origDistances) / Math.min(...origDistances);
+      
+      const pcaDistances = [];
+      for (let i = 1; i < points.length; i++) { let dist = 0; for (let d = 0; d < targetDim; d++) dist += (points[0][d] - points[i][d]) ** 2; pcaDistances.push(Math.sqrt(dist)); }
+      const pcaRatio = Math.max(...pcaDistances) / Math.min(...pcaDistances);
+      
+      function drawHistogram(canvasId, distances, color) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, 180, 180);
+        const minD = Math.min(...distances), maxD = Math.max(...distances);
+        const bins = 12, binWidth = (maxD - minD) / bins || 1;
+        const histogram = new Array(bins).fill(0);
+        distances.forEach(d => { const bin = Math.min(Math.floor((d - minD) / binWidth), bins - 1); histogram[bin]++; });
+        const maxCount = Math.max(...histogram), barW = 140 / bins;
+        ctx.fillStyle = color;
+        histogram.forEach((count, i) => { const barH = (count / maxCount) * 110; ctx.fillRect(20 + i * barW, 150 - barH, barW - 1, barH); });
+        ctx.strokeStyle = '#475569';
+        ctx.beginPath(); ctx.moveTo(20, 150); ctx.lineTo(165, 150); ctx.stroke();
+      }
+      
+      drawHistogram('pca-before-canvas', origDistances, '#ef4444');
+      drawHistogram('pca-after-canvas', pcaDistances, '#10b981');
+      
+      document.getElementById('pca-metrics').innerHTML = `
+        <span class="metric ${origRatio < 1.8 ? 'worse' : ''}"><span class="metric-label">원본 거리비율</span>${origRatio.toFixed(2)}</span>
+        <span class="metric ${pcaRatio > origRatio ? 'improved' : ''}"><span class="metric-label">PCA후 거리비율</span>${pcaRatio.toFixed(2)}</span>
+      `;
+      
+      document.getElementById('pca-insight').innerHTML = `💡 <strong>PCA 효과:</strong> ${origDim}차원 → ${targetDim}차원 축소. 거리 비율 ${origRatio.toFixed(2)} → ${pcaRatio.toFixed(2)}. ${pcaRatio > 2.5 ? '거리 변별력 회복!' : '거리 변별력 개선됨.'}`;
+    }
+
+    // ========== Elbow Demo ==========
+    let elbowData = null;
+    function runElbowDemo() {
+      const trueK = parseInt(document.getElementById('elbow-true-k').value);
+      
+      elbowData = [];
+      const centers = [];
+      for (let i = 0; i < trueK; i++) centers.push({ x: 25 + (130 / trueK) * i + Math.random() * 20, y: 25 + Math.random() * 130 });
+      centers.forEach(c => { for (let i = 0; i < 18; i++) elbowData.push({ x: randomGaussian(c.x, 18), y: randomGaussian(c.y, 18) }); });
+      
+      const dataCanvas = document.getElementById('elbow-data-canvas');
+      const dataCtx = dataCanvas.getContext('2d');
+      dataCtx.clearRect(0, 0, 180, 180);
+      dataCtx.fillStyle = '#3b82f6';
+      elbowData.forEach(p => { dataCtx.beginPath(); dataCtx.arc(p.x, p.y, 3, 0, Math.PI * 2); dataCtx.fill(); });
+      
+      const sseValues = [], silValues = [];
+      for (let K = 1; K <= 8; K++) {
+        let centroids = [];
+        for (let i = 0; i < K; i++) centroids.push({ ...elbowData[Math.floor(Math.random() * elbowData.length)] });
+        for (let iter = 0; iter < 12; iter++) {
+          elbowData.forEach(p => { let minDist = Infinity; centroids.forEach((c, i) => { const d = (p.x - c.x) ** 2 + (p.y - c.y) ** 2; if (d < minDist) { minDist = d; p.cluster = i; } }); });
+          centroids = centroids.map((_, i) => { const assigned = elbowData.filter(p => p.cluster === i); if (assigned.length === 0) return centroids[i]; return { x: assigned.reduce((s, p) => s + p.x, 0) / assigned.length, y: assigned.reduce((s, p) => s + p.y, 0) / assigned.length }; });
+        }
+        let sse = 0;
+        elbowData.forEach(p => { const c = centroids[p.cluster]; if (c) sse += (p.x - c.x) ** 2 + (p.y - c.y) ** 2; });
+        sseValues.push(sse);
+        
+        if (K > 1) {
+          let sil = 0;
+          elbowData.forEach(p => { const same = elbowData.filter(q => q.cluster === p.cluster && q !== p); const a = same.length > 0 ? same.reduce((s, q) => s + Math.sqrt((p.x-q.x)**2+(p.y-q.y)**2), 0) / same.length : 0; let minB = Infinity; for (let k = 0; k < K; k++) { if (k !== p.cluster) { const other = elbowData.filter(q => q.cluster === k); if (other.length > 0) { const b = other.reduce((s, q) => s + Math.sqrt((p.x-q.x)**2+(p.y-q.y)**2), 0) / other.length; minB = Math.min(minB, b); } } } if (minB !== Infinity && Math.max(a, minB) > 0) sil += (minB - a) / Math.max(a, minB); });
+          silValues.push(sil / elbowData.length);
+        } else silValues.push(0);
+      }
+      
+      const elbowCanvas = document.getElementById('elbow-chart-canvas');
+      const elbowCtx = elbowCanvas.getContext('2d');
+      elbowCtx.clearRect(0, 0, 200, 180);
+      const maxSSE = Math.max(...sseValues);
+      const ssePoints = sseValues.map((sse, i) => ({ x: 25 + i * 22, y: 160 - (sse / maxSSE) * 130 }));
+      elbowCtx.strokeStyle = '#3b82f6'; elbowCtx.lineWidth = 2; elbowCtx.beginPath();
+      ssePoints.forEach((p, i) => { if (i === 0) elbowCtx.moveTo(p.x, p.y); else elbowCtx.lineTo(p.x, p.y); }); elbowCtx.stroke();
+      ssePoints.forEach((p, i) => { elbowCtx.beginPath(); elbowCtx.arc(p.x, p.y, i + 1 === trueK ? 6 : 4, 0, Math.PI * 2); elbowCtx.fillStyle = i + 1 === trueK ? '#10b981' : '#3b82f6'; elbowCtx.fill(); });
+      elbowCtx.strokeStyle = '#475569'; elbowCtx.lineWidth = 1; elbowCtx.beginPath(); elbowCtx.moveTo(20, 160); elbowCtx.lineTo(195, 160); elbowCtx.stroke();
+      elbowCtx.font = '9px Arial'; elbowCtx.fillStyle = '#94a3b8'; for (let i = 1; i <= 8; i++) elbowCtx.fillText(i, 20 + (i - 1) * 22, 175);
+      
+      const silCanvas = document.getElementById('silhouette-chart-canvas');
+      const silCtx = silCanvas.getContext('2d');
+      silCtx.clearRect(0, 0, 200, 180);
+      const silPoints = silValues.map((s, i) => ({ x: 25 + i * 22, y: 160 - (s + 0.2) / 1.2 * 130 }));
+      silCtx.strokeStyle = '#f59e0b'; silCtx.lineWidth = 2; silCtx.beginPath();
+      silPoints.forEach((p, i) => { if (i === 0) silCtx.moveTo(p.x, p.y); else silCtx.lineTo(p.x, p.y); }); silCtx.stroke();
+      let maxSilIdx = 1; silValues.forEach((s, i) => { if (i > 0 && s > silValues[maxSilIdx]) maxSilIdx = i; });
+      silPoints.forEach((p, i) => { silCtx.beginPath(); silCtx.arc(p.x, p.y, i === maxSilIdx ? 6 : 4, 0, Math.PI * 2); silCtx.fillStyle = i === maxSilIdx ? '#10b981' : '#f59e0b'; silCtx.fill(); });
+      silCtx.strokeStyle = '#475569'; silCtx.beginPath(); silCtx.moveTo(20, 160); silCtx.lineTo(195, 160); silCtx.stroke();
+      silCtx.font = '9px Arial'; silCtx.fillStyle = '#94a3b8'; for (let i = 1; i <= 8; i++) silCtx.fillText(i, 20 + (i - 1) * 22, 175);
+      
+      let maxCurve = 0, elbowK = 2;
+      for (let i = 1; i < sseValues.length - 1; i++) { const curve = sseValues[i - 1] - 2 * sseValues[i] + sseValues[i + 1]; if (curve > maxCurve) { maxCurve = curve; elbowK = i + 1; } }
+      
+      document.getElementById('elbow-metrics').innerHTML = `
+        <span class="metric improved"><span class="metric-label">Elbow 추천</span>K=${elbowK}</span>
+        <span class="metric ${maxSilIdx + 1 === trueK ? 'improved' : ''}"><span class="metric-label">Silhouette 최대</span>K=${maxSilIdx + 1}</span>
+        <span class="metric"><span class="metric-label">실제 군집</span>K=${trueK}</span>
+      `;
+      
+      document.getElementById('elbow-insight').innerHTML = `💡 <strong>분석:</strong> Elbow K=${elbowK}, Silhouette K=${maxSilIdx + 1}. 실제 ${trueK}과 ${elbowK === trueK || maxSilIdx + 1 === trueK ? '일치!' : '근접.'}`;
+    }
+
+    // ========== Retrain Demo ==========
+    function runRetrainDemo() {
+      const canvas = document.getElementById('retrain-canvas');
+      const ctx = canvas.getContext('2d');
+      const drift = parseInt(document.getElementById('retrain-drift').value);
+      const strategy = document.getElementById('retrain-strategy').value;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const shift = drift * 0.7;
+      const classA = [], classB = [];
+      for (let i = 0; i < 30; i++) { classA.push({ x: randomGaussian(110, 35), y: randomGaussian(165 - shift, 25) }); classB.push({ x: randomGaussian(290, 35), y: randomGaussian(50 + shift * 0.4, 25) }); }
+      
+      const oldBoundary = { y1: 155, y2: 70 };
+      const newBoundaryY = strategy !== 'none' ? 105 - shift * 0.3 : null;
+      
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(0, oldBoundary.y1); ctx.lineTo(400, oldBoundary.y2); ctx.stroke();
+      
+      if (strategy === 'retrain' && newBoundaryY) { ctx.strokeStyle = '#10b981'; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(0, newBoundaryY + 35); ctx.lineTo(400, newBoundaryY - 25); ctx.stroke(); }
+      ctx.setLineDash([]);
+      
+      ctx.fillStyle = '#3b82f6'; classA.forEach(p => { ctx.beginPath(); ctx.arc(Math.max(4, Math.min(396, p.x)), Math.max(4, Math.min(196, p.y)), 4, 0, Math.PI * 2); ctx.fill(); });
+      ctx.fillStyle = '#10b981'; classB.forEach(p => { ctx.beginPath(); ctx.arc(Math.max(4, Math.min(396, p.x)), Math.max(4, Math.min(196, p.y)), 4, 0, Math.PI * 2); ctx.fill(); });
+      
+      const oldBoundaryFn = (x) => 155 - (x / 400) * 85;
+      const newBoundaryFn = (x) => (newBoundaryY || 105) + 35 - (x / 400) * 60;
+      
+      let oldCorrect = 0, newCorrect = 0;
+      classA.forEach(p => { if (p.y > oldBoundaryFn(p.x)) oldCorrect++; if (p.y > newBoundaryFn(p.x)) newCorrect++; });
+      classB.forEach(p => { if (p.y < oldBoundaryFn(p.x)) oldCorrect++; if (p.y < newBoundaryFn(p.x)) newCorrect++; });
+      
+      const oldAcc = (oldCorrect / 60 * 100).toFixed(1);
+      const newAcc = (newCorrect / 60 * 100).toFixed(1);
+      const improvement = (parseFloat(newAcc) - parseFloat(oldAcc)).toFixed(1);
+      
+      document.getElementById('retrain-metrics').innerHTML = `
+        <span class="metric ${parseFloat(oldAcc) < 70 ? 'worse' : ''}"><span class="metric-label">기존 모델</span>${oldAcc}%</span>
+        <span class="metric ${strategy !== 'none' && parseFloat(newAcc) > parseFloat(oldAcc) ? 'improved' : ''}"><span class="metric-label">재학습 후</span>${strategy !== 'none' ? newAcc + '%' : '-'}</span>
+        <span class="metric"><span class="metric-label">드리프트</span>${drift}%</span>
+      `;
+      
+      document.getElementById('retrain-insight').innerHTML = strategy === 'none'
+        ? `⚠️ <strong>대응 없음:</strong> 드리프트(${drift}%)로 정확도가 ${oldAcc}%로 저하됨. 재학습을 선택해보세요.`
+        : `✅ <strong>재학습 효과:</strong> 정확도 ${oldAcc}% → ${newAcc}%로 회복. (+${improvement}%p)`;
+    }
+
+    runSmoteDemo();
+  </script>
+</body>
+</html>
